@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name JST-Connectors)(type Github)(uri https://github.com/KiCad/Connectors_JST.pretty)(options "")(descr ""))
+  (lib (name "Lego Hacks")(type KiCad)(uri D:\User\Thomas\LegoHacks\Projekte\KiCad\libraries\legohacks.pretty)(options "")(descr ""))
+)
