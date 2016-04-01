@@ -1,0 +1,17 @@
+.metadata/
+RemoteSystemsTempFiles/
+*.tmp
+*.d
+*.o
+*.eep
+*.elf
+*.hex
+spec.d
+.settings/
+post_processing_boards.txt
+post_processing_platform.txt
+pre_processing_boards.txt
+pre_processing_platform.txt
+Release/
+.project
+.cproject
