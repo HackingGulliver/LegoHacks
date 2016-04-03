@@ -1,3 +1,9 @@
+/**
+ *
+ * Anleitung zum Einrichten des Debuggers: http://blog.baeyens.it/#post23
+ */
+
+
 // Do not remove the include below
 #include "Stepper.h"
 
@@ -148,3 +154,9 @@ void loop()
 	}
 */
 }
+
+#ifdef DEBUG
+void delayMicroseconds(unsigned int us) {
+
+}
+#endif

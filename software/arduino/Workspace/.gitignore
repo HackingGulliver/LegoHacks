@@ -13,5 +13,7 @@ post_processing_platform.txt
 pre_processing_boards.txt
 pre_processing_platform.txt
 Release/
+Debug/
 .project
 .cproject
+.gitignore~
