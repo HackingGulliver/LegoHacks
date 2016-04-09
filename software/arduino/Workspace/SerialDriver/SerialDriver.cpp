@@ -4,8 +4,8 @@
 
 #include <SPI.h>
 
-#define SHIFT_DATA_PIN 11
-#define SHIFT_CLOCK_PIN 13
+#define SHIFT_DATA_PIN 11  // MOSI
+#define SHIFT_CLOCK_PIN 13 // SPI Clock
 #define SHIFT_STORE_PIN 2
 
 PWMStateCalculator pwmStateCalculator;
@@ -15,13 +15,14 @@ void setup() {
 	pinMode(SHIFT_STORE_PIN, OUTPUT);
 
 	SPI.begin();
-	SPI.beginTransaction(SPISettings(16000000, MSBFIRST, SPI_MODE0));
+	SPI.beginTransaction(SPISettings(16000000, LSBFIRST, SPI_MODE0));
 }
 
 
 void writeToShift(uint8_t value, boolean finish) {
 #ifndef DEBUG
 	PORTD = 0;
+
 	SPI.transfer(value);
 
 	if (finish) {
@@ -44,12 +45,12 @@ void pwm(uint8_t duty, uint8_t value) {
 void performPWMCycle() {
 	for (int i = 0; i <= 255; ++i) {
 		uint8_t state = pwmStateCalculator.calculateNextState();
-		writeToShift(0, false);
-		state = pwmStateCalculator.calculateNextState();
-		writeToShift(0, false);
-		state = pwmStateCalculator.calculateNextState();
-		writeToShift(0, false);
-		state = pwmStateCalculator.calculateNextState();
+//		writeToShift(0, false);
+//		state = pwmStateCalculator.calculateNextState();
+//		writeToShift(0, false);
+//		state = pwmStateCalculator.calculateNextState();
+//		writeToShift(0, false);
+//		state = pwmStateCalculator.calculateNextState();
 		writeToShift(state, true);
 	}
 }
