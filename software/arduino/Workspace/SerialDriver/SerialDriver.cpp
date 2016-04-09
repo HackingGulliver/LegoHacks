@@ -45,12 +45,12 @@ void pwm(uint8_t duty, uint8_t value) {
 void performPWMCycle() {
 	for (int i = 0; i <= 255; ++i) {
 		uint8_t state = pwmStateCalculator.calculateNextState();
-//		writeToShift(0, false);
-//		state = pwmStateCalculator.calculateNextState();
-//		writeToShift(0, false);
-//		state = pwmStateCalculator.calculateNextState();
-//		writeToShift(0, false);
-//		state = pwmStateCalculator.calculateNextState();
+		writeToShift(0, false);
+		state = pwmStateCalculator.calculateNextState();
+		writeToShift(0, false);
+		state = pwmStateCalculator.calculateNextState();
+		writeToShift(0, false);
+		state = pwmStateCalculator.calculateNextState();
 		writeToShift(state, true);
 	}
 }
@@ -79,7 +79,7 @@ void loop()
 				nduty = (nduty >> 1);// + (nduty >> 3);
 				pwmStateCalculator.setDuty((led-nled) & 0x07, nduty);
 			}
-			for (int cycles = 0; cycles < 10; ++cycles) {
+			for (int cycles = 0; cycles < 250; ++cycles) {
 				performPWMCycle();
 			}
 		}
