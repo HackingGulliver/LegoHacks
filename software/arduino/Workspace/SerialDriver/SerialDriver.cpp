@@ -23,7 +23,6 @@ void writeToShift(uint8_t value, boolean finish) {
 #ifndef DEBUG
 	PORTD = 0;
 	SPI.transfer(value);
-	PORTD = 4;
 
 	if (finish) {
 		PORTD = 4; // store = 1
