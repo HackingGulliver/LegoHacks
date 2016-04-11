@@ -3,10 +3,13 @@
 #include "PWMStateCalculator.h"
 
 #include <SPI.h>
+#include <TimerOne.h>
 
 #define SHIFT_DATA_PIN 11  // MOSI
 #define SHIFT_CLOCK_PIN 13 // SPI Clock
 #define SHIFT_STORE_PIN 2
+
+void performPWMCycle();
 
 PWMStateCalculator pwmStateCalculator;
 
@@ -16,6 +19,10 @@ void setup() {
 
 	SPI.begin();
 	SPI.beginTransaction(SPISettings(16000000, LSBFIRST, SPI_MODE0));
+
+	Timer1.initialize();
+	Timer1.setPeriod(39);
+	Timer1.attachInterrupt(performPWMCycle);
 }
 
 
@@ -43,7 +50,7 @@ void pwm(uint8_t duty, uint8_t value) {
 }
 
 void performPWMCycle() {
-	for (int i = 0; i <= 255; ++i) {
+//	for (int i = 0; i <= 255; ++i) {
 		uint8_t state = pwmStateCalculator.calculateNextState();
 		writeToShift(0, false);
 		state = pwmStateCalculator.calculateNextState();
@@ -52,7 +59,7 @@ void performPWMCycle() {
 		writeToShift(0, false);
 		state = pwmStateCalculator.calculateNextState();
 		writeToShift(state, true);
-	}
+//	}
 }
 
 // The loop function is called in an endless loop
@@ -66,10 +73,9 @@ void loop()
 	pwmStateCalculator.setDuty(5,8);
 	pwmStateCalculator.setDuty(6,4);
 	pwmStateCalculator.setDuty(7,2);
-	for (uint16_t i = 0; i < 1000; ++i) {
-		performPWMCycle();
-	}
-	uint8_t duty = 255;
+	delay(1000);
+
+	uint8_t duty = 50;
 	while (1) {
 
 		for (uint8_t led = 0; led < 8; ++led) {
@@ -79,9 +85,7 @@ void loop()
 				nduty = (nduty >> 1);// + (nduty >> 3);
 				pwmStateCalculator.setDuty((led-nled) & 0x07, nduty);
 			}
-			for (int cycles = 0; cycles < 250; ++cycles) {
-				performPWMCycle();
-			}
+			delay(250);
 		}
 
 	}
