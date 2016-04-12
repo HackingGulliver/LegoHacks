@@ -62,31 +62,37 @@ void performPWMCycle() {
 //	}
 }
 
-// The loop function is called in an endless loop
-void loop()
-{
-	pwmStateCalculator.setDuty(0,255);
-	pwmStateCalculator.setDuty(1,128);
-	pwmStateCalculator.setDuty(2,64);
-	pwmStateCalculator.setDuty(3,32);
-	pwmStateCalculator.setDuty(4,16);
-	pwmStateCalculator.setDuty(5,8);
-	pwmStateCalculator.setDuty(6,4);
-	pwmStateCalculator.setDuty(7,2);
+void showRisingBrightness() {
+	pwmStateCalculator.setDuty(0, 255);
+	pwmStateCalculator.setDuty(1, 128);
+	pwmStateCalculator.setDuty(2, 64);
+	pwmStateCalculator.setDuty(3, 32);
+	pwmStateCalculator.setDuty(4, 16);
+	pwmStateCalculator.setDuty(5, 8);
+	pwmStateCalculator.setDuty(6, 4);
+	pwmStateCalculator.setDuty(7, 2);
 	delay(1000);
+}
 
+void showChaserLight() {
 	uint8_t duty = 50;
 	while (1) {
-
 		for (uint8_t led = 0; led < 8; ++led) {
 			pwmStateCalculator.setDuty(led, duty);
 			uint8_t nduty = duty;
 			for (uint8_t nled = 1; nled < 7; ++nled) {
-				nduty = (nduty >> 1);// + (nduty >> 3);
-				pwmStateCalculator.setDuty((led-nled) & 0x07, nduty);
+				nduty = (nduty >> 1); // + (nduty >> 3);
+				pwmStateCalculator.setDuty((led - nled) & 0x07, nduty);
 			}
 			delay(250);
 		}
-
 	}
+}
+
+// The loop function is called in an endless loop
+void loop()
+{
+	showRisingBrightness();
+
+	showChaserLight();
 }
