@@ -23,6 +23,8 @@ void setup() {
 	Timer1.initialize();
 	Timer1.setPeriod(39);
 	Timer1.attachInterrupt(performPWMCycle);
+
+	Serial.begin(57600);
 }
 
 
@@ -54,10 +56,10 @@ void performPWMCycle() {
 		uint8_t state = pwmStateCalculator.calculateNextState();
 		writeToShift(0, false);
 		state = pwmStateCalculator.calculateNextState();
-		writeToShift(0, false);
-		state = pwmStateCalculator.calculateNextState();
-		writeToShift(0, false);
-		state = pwmStateCalculator.calculateNextState();
+//		writeToShift(0, false);
+//		state = pwmStateCalculator.calculateNextState();
+//		writeToShift(0, false);
+//		state = pwmStateCalculator.calculateNextState();
 		writeToShift(state, true);
 //	}
 }
@@ -89,10 +91,28 @@ void showChaserLight() {
 	}
 }
 
+// Profile:
+// Keine Optimierung:
+// 1 Byte senden: 290514
+// 2 Byte senden: 115000
+// 3 Byte senden: n/a
+
 // The loop function is called in an endless loop
 void loop()
 {
 	showRisingBrightness();
 
-	showChaserLight();
+//	showChaserLight();
+
+	uint32_t counter = 0;
+
+	unsigned long inOneSecond = millis() + 1000l;
+
+	Serial.print("Starting...");
+	while (millis() < inOneSecond) {
+		counter++;
+	}
+
+	Serial.println(counter);
+
 }
