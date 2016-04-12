@@ -23,11 +23,20 @@ public:
 		}
 	}
 
-	uint8_t calculateNextState();
+	uint8_t nextState();
+	boolean tickAndTest() {
+		if (currentStep++ == nextChangingStep) {
+			return true;
+		}
+		return false;
+	}
+
 
 private:
 	uint8_t duties[NUM_CHANNELS];
 	uint8_t currentStep;
+	uint8_t nextChangingStep;
+	uint8_t currentState;
 
 };
 

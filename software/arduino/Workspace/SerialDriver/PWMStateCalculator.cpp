@@ -8,24 +8,36 @@
 #include "PWMStateCalculator.h"
 
 PWMStateCalculator::PWMStateCalculator() {
-	// TODO Auto-generated constructor stub
-
+	nextChangingStep = 0;
+	currentStep = 0;
+	currentState = 0;
 }
 
 PWMStateCalculator::~PWMStateCalculator() {
 	// TODO Auto-generated destructor stub
 }
 
-uint8_t PWMStateCalculator::calculateNextState() {
-	uint8_t state = 0;
+uint8_t PWMStateCalculator::nextState() {
+	uint8_t currStep = currentStep - 1;
+	if (currStep != nextChangingStep) {
+		return currentState;
+	}
+
+	currentState = 0;
+	nextChangingStep = 255;
 
 	for (uint8_t i = 0; i < 8; ++i) {
-		state <<= 1;
-		if (currentStep < duties[i]) {
-			state |= 1;
+		currentState <<= 1;
+		uint8_t duty = duties[i];
+		if (currStep < duty) {
+			currentState |= 1;
+			if (duty < nextChangingStep) {
+				nextChangingStep = duty;
+			}
 		}
 	}
 
-	++currentStep;
-	return state;
+	nextChangingStep++;
+	return currentState;
 }
+
