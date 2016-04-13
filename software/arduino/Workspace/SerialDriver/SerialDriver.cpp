@@ -73,19 +73,30 @@ void pwm(uint8_t duty, uint8_t value) {
 void performPWMCycle() {
 	uint8_t state;
 	bool change1 = pwmStateCalculator1.tickAndTest();
-	bool change2 = pwmStateCalculator2.tickAndTest();
-	bool change3 = pwmStateCalculator3.tickAndTest();
-	bool change4 = pwmStateCalculator4.tickAndTest();
-	if (change1 || change2 || change3 || change4) {
-		state = pwmStateCalculator4.nextState();
-		writeToShift(state, false);
-		state = pwmStateCalculator3.nextState();
-		writeToShift(state, false);
-		state = pwmStateCalculator2.nextState();
-		writeToShift(state, false);
+//	bool change2 = pwmStateCalculator2.tickAndTest();
+//	bool change3 = pwmStateCalculator3.tickAndTest();
+//	bool change4 = pwmStateCalculator4.tickAndTest();
+	if (change1) {// || change2) {// || change3 || change4) {
+//		state = pwmStateCalculator4.nextState();
+//		writeToShift(state, false);
+//		state = pwmStateCalculator3.nextState();
+//		writeToShift(state, false);
+//		state = pwmStateCalculator2.nextState();
+//		writeToShift(state, false);
 		state = pwmStateCalculator1.nextState();
 		writeToShift(state, true);
 	}
+}
+
+void mockPWMCycle() {
+	volatile static uint8_t currStep = 0;
+	if ((currStep & 7) == 0) {
+		writeToShift(currStep, false);
+		writeToShift(currStep, false);
+		writeToShift(currStep, false);
+		writeToShift(currStep, true);
+	}
+	currStep++;
 }
 
 void showRisingBrightness(uint8_t startValue, PWMStateCalculator &calc) {
@@ -161,6 +172,43 @@ uint32_t benchmark() {
 // 420Hz: 158000
 // 470Hz: 115000
 // 535Hz: 63000
+
+
+// Lastfaktoren: Die Zahlen geben den Anteil der Prozessorzeit an, der noch für die loop-Schleife übrig bleibt.
+// D.h. bei 0,86 schluckt der Timer 14% und 86% bleiben für das eigentliche Programm übrig.
+//
+// Normaler PWMStateCalculator
+// 100Hz / 1 Byte
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.83
+// Gleiche PWMs: 0.84
+//
+// 100Hz / 2 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.80
+// Gleiche PWMs: 0.81
+//
+// 100Hz / 4 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.60
+// Gleiche PWMs: 0.62
+
+// Optimum
+// 100Hz / 1 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.84
+//
+// 100Hz / 2 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.84
+//
+// 100Hz / 4 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.81
+//
+// 100Hz / 8 Bytes
+// Leerer Timer: 0.86
+// Unterschiedliche PWMs: 0.72
 
 void emptyFunction() {
 
