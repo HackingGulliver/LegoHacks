@@ -12,32 +12,33 @@
 
 class PWMStateCalculator {
 public:
-	static const uint8_t NUM_CHANNELS = 8;
-
-	PWMStateCalculator();
+	PWMStateCalculator(uint8_t channels);
 	virtual ~PWMStateCalculator();
 
-	void setDuty(uint8_t channel, uint8_t duty) {
-		if (channel < NUM_CHANNELS) {
-			duties[channel] = duty;
-		}
-	}
+	void setDuty(uint8_t channel, uint8_t duty);
 
-	uint8_t nextState();
-	boolean tickAndTest() {
+	void tickAndTest() {
 		if (currentStep++ == nextChangingStep) {
-			return true;
+			writeData();
 		}
-		return false;
 	}
-
 
 private:
-	uint8_t duties[NUM_CHANNELS];
-	uint8_t currentStep;
-	uint8_t nextChangingStep;
-	uint8_t currentState;
+	void writeData();
+	void createDataForSteps();
+	void createStepData(uint8_t duty, uint8_t stepIdx);
+	uint8_t sortChangingStepsAndRemoveDuplicates();
 
+private:
+	uint8_t numBytes;		// The number of bytes needed to represent the current PWM state
+	uint8_t numChannels;	// The number of PWM channels
+	uint8_t numChangingSteps;
+	uint8_t currentStep;	// The current step in a whole PWM cycle
+	uint8_t nextChangingStep; 	// The step when the next bytes have to be sent
+
+	uint8_t *changingSteps;	// Array of step indices, when changing data has to be sent
+	uint8_t *dataForSteps;		// This array contains all data that has to be sent at certain steps. Its size is numBytes*numChannels.
+	uint8_t *duties;			// Duty values for all channels
 };
 
 #endif /* PWMSTATECALCULATOR_H_ */
