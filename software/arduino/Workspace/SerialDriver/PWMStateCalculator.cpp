@@ -16,7 +16,8 @@ PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	duties = new uint8_t[numChannels];
 
 	currentStep = 0;
-	nextChangingStep = changingSteps;
+	nextChangingStepPtr = changingSteps;
+	nextChangingStep = 0;
 	dutyChanged = false;
 }
 
@@ -33,29 +34,27 @@ void PWMStateCalculator::setDuty(uint8_t channel, uint8_t duty){
 }
 
 void PWMStateCalculator::writeData() {
-	if (*nextChangingStep == 0) {
-		nextData = dataForSteps;
+	noInterrupts();
+
+	if (nextChangingStep == 0) {
+		restartCycle();
 	}
 
-	for (uint8_t i = 1; i < numBytes; ++i) {
-		writeToShift(*nextData++, false);
-	}
-	writeToShift(*nextData++, true);
-
-	++nextChangingStep;
-}
-
-void PWMStateCalculator::writeToShift(uint8_t value, boolean finish) {
-#ifndef DEBUG
 	PORTD = 0;
+	uint8_t nb = numBytes;
+	while (nb--) {
+		SPI.transfer(*nextData++);
+	}
+	PORTD = 4; // store = 1
 
-	SPI.transfer(value);
-
-	if (finish) {
-		PORTD = 4; // store = 1
+	++nextChangingStepPtr;
+	if (nextChangingStepPtr - changingSteps >= numChangingSteps) {
+		nextChangingStep = 0;
+	} else {
+		nextChangingStep = *nextChangingStepPtr;
 	}
 
-#endif
+	interrupts();
 }
 
 void PWMStateCalculator::createDataForSteps() {
@@ -112,16 +111,12 @@ uint8_t PWMStateCalculator::sortChangingStepsAndRemoveDuplicates() {
 	return numDifferent;
 }
 
-void PWMStateCalculator::tick() {
-	noInterrupts();
-	if (currentStep == 0) {
-		if (dutyChanged) {
-			createDataForSteps();
-		}
-		nextChangingStep = changingSteps;
+void PWMStateCalculator::restartCycle() {
+	if (dutyChanged) {
+		createDataForSteps();
 	}
-	if (currentStep++ == *nextChangingStep) {
-		writeData();
-	}
-	interrupts();
+	nextChangingStepPtr = changingSteps;
+	nextChangingStep = *nextChangingStepPtr;
+	nextData = dataForSteps;
 }
+
