@@ -38,11 +38,9 @@ void PWMStateCalculator::createDataForSteps() {
 	memcpy(changingSteps+1, duties, numChannels);
 
 	numChangingSteps = sortChangingStepsAndRemoveDuplicates();
-	uint8_t stepIdx = 0;
 	for (uint8_t cs = 0; cs < numChangingSteps; ++cs) {
-		++stepIdx;
 		uint8_t duty = changingSteps[cs];
-		createStepData(duty, stepIdx);
+		createStepData(duty, cs);
 	}
 }
 
@@ -78,7 +76,8 @@ uint8_t PWMStateCalculator::sortChangingStepsAndRemoveDuplicates() {
 	uint8_t numDifferent = 1;
 	uint8_t lastVal = changingSteps[0];
 	for (uint8_t i = 1; i <= numChannels; ++i) {
-		if (changingSteps[i] != lastVal) {
+		if (changingSteps[i] != lastVal
+			&& changingSteps[i] != 255) { // Nothing to change at step 255. This means: always on
 			lastVal = changingSteps[numDifferent++] = changingSteps[i];
 		}
 	}
