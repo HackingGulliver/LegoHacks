@@ -1,0 +1,101 @@
+Profile: Eine Sekunde Counter hoch zählen und dabei die Zeit für die Sekunde vergleichen
+Keine Optimierung (100Hz):
+1 Byte senden: 290514
+2 Byte senden: 115000
+3 Byte senden: n/a
+Optimierung (100Hz):
+1 Byte senden: 433000
+2 Byte senden: 414000
+3 Byte senden: 389000
+4 Byte senden: 308000
+Optimierung (200Hz):
+4 Byte senden: 114000
+Optimierung (250Hz):
+4 Byte senden: 11000 (Performance grenzwertig)
+Optimierung 1 Byte senden
+300Hz: 260000
+325Hz: 239000
+350Hz: 215000
+385Hz: 190000
+420Hz: 158000
+470Hz: 115000
+535Hz: 63000
+
+
+Lastfaktoren: Die Zahlen geben den Anteil der Prozessorzeit an, der noch für die loop-Schleife übrig bleibt.
+D.h. bei 0,86 schluckt der Timer 14% und 86% bleiben für das eigentliche Programm übrig.
+//
+Normaler PWMStateCalculator
+===========================
+Leerer Timer: 0.86
+
+100Hz / 1 Byte
+Unterschiedliche PWMs: 0.83
+Gleiche PWMs: 0.84
+
+100Hz / 2 Bytes
+Unterschiedliche PWMs: 0.80
+Gleiche PWMs: 0.81
+
+100Hz / 4 Bytes
+Unterschiedliche PWMs: 0.60
+Gleiche PWMs: 0.62
+
+Optimum (feste Daten ohne Berechnung senden)
+============================================
+Leerer Timer: 0.86
+
+100Hz / 1 Byte
+Unterschiedliche PWMs: 0.84
+
+100Hz / 2 Bytes
+Unterschiedliche PWMs: 0.84
+
+100Hz / 4 Bytes
+Unterschiedliche PWMs: 0.81
+
+100Hz / 8 Bytes
+Unterschiedliche PWMs: 0.72
+
+Vorberechnung der zu sendenden Daten (Version 1)
+================================================
+
+Leerer Timer: 0.86
+
+100Hz / 1 Byte
+Unterschiedliche PWMs: 0.80
+Gleiche PWMs: 0.80
+
+100Hz / 2 Bytes
+Unterschiedliche PWMs: 0.79
+Gleiche PWMs: 0.80
+
+100Hz / 4 Bytes
+Unterschiedliche PWMs: 0.76
+Gleiche PWMs: 0.80
+
+100Hz / 8 Bytes
+Unterschiedliche PWMs: 0.63
+Gleiche PWMs: 0.80
+
+Vorberechnung der zu sendenden Daten (Version 2)
+================================================
+
+Leerer Timer: 0.86
+
+100Hz / 1 Byte
+Unterschiedliche PWMs: 0.84
+Gleiche PWMs: 0.84
+
+100Hz / 2 Bytes
+Unterschiedliche PWMs: 0.83 
+Gleiche PWMs: 0.84
+
+100Hz / 4 Bytes
+Unterschiedliche PWMs: 0.80
+Gleiche PWMs: 0.84 
+
+100Hz / 8 Bytes
+Unterschiedliche PWMs: 0.70
+Gleiche PWMs: 0.84
+
