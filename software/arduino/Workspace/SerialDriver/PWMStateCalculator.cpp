@@ -6,6 +6,7 @@
  */
 
 #include "PWMStateCalculator.h"
+#include <SPI.h>
 
 PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	numChannels = channels;
@@ -15,6 +16,8 @@ PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	duties = new uint8_t[numChannels];
 
 	currentStep = 0;
+	nextChangingStep = changingSteps;
+	dutyChanged = false;
 }
 
 PWMStateCalculator::~PWMStateCalculator() {
@@ -27,13 +30,37 @@ void PWMStateCalculator::setDuty(uint8_t channel, uint8_t duty){
 		return;
 	}
 	duties[channel] = duty;
-	createDataForSteps();
 }
 
 void PWMStateCalculator::writeData() {
+	if (*nextChangingStep == 0) {
+		nextData = dataForSteps;
+	}
+
+	for (uint8_t i = 1; i < numBytes; ++i) {
+		writeToShift(*nextData++, false);
+	}
+	writeToShift(*nextData++, true);
+
+	++nextChangingStep;
+}
+
+void PWMStateCalculator::writeToShift(uint8_t value, boolean finish) {
+#ifndef DEBUG
+	PORTD = 0;
+
+	SPI.transfer(value);
+
+	if (finish) {
+		PORTD = 4; // store = 1
+	}
+
+#endif
 }
 
 void PWMStateCalculator::createDataForSteps() {
+	dutyChanged = false;
+
 	changingSteps[0] = 0;
 	memcpy(changingSteps+1, duties, numChannels);
 
@@ -42,6 +69,7 @@ void PWMStateCalculator::createDataForSteps() {
 		uint8_t duty = changingSteps[cs];
 		createStepData(duty, cs);
 	}
+
 }
 
 void PWMStateCalculator::createStepData(uint8_t duty, uint8_t stepIdx) {
@@ -82,4 +110,18 @@ uint8_t PWMStateCalculator::sortChangingStepsAndRemoveDuplicates() {
 		}
 	}
 	return numDifferent;
+}
+
+void PWMStateCalculator::tick() {
+	noInterrupts();
+	if (currentStep == 0) {
+		if (dutyChanged) {
+			createDataForSteps();
+		}
+		nextChangingStep = changingSteps;
+	}
+	if (currentStep++ == *nextChangingStep) {
+		writeData();
+	}
+	interrupts();
 }
