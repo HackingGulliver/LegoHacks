@@ -9,7 +9,7 @@
 namespace {
 
 const int MICROSEC_PER_AT_100HZ = 39;
-const int NUM_PINS = 16;
+const int NUM_PINS = 32;
 }
 
 void performPWMCycle();
@@ -112,55 +112,99 @@ void emptyFunction() {
 
 }
 
-// The loop function is called in an endless loop
-void loop()
-{
-
-	// Benchmarks for creating the data to be sent
-#ifndef DEBUG
-//	Timer1.attachInterrupt(performPWMCycle);
-#endif
-/*
+void benchmarkCreateData() {
 	unsigned long int start;
 	unsigned long int diff;
 	createDutyRange(0, 255, NUM_PINS, pwmStateCalculator);
 	pwmStateCalculator.setupFinished();
+	start = micros();
+//	pwmStateCalculator.createDataForSteps();
+	diff = micros() - start;
+	Serial.print("Sortiert:           ");
+	Serial.println(diff);
+	delay(1000);
+	createDutyRange(255, 0, NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setupFinished();
+	start = micros();
+//	pwmStateCalculator.createDataForSteps();
+	diff = micros() - start;
+	Serial.print("Umgekehrt sortiert: ");
+	Serial.println(diff);
+	delay(1000);
+	createRandomDuties(NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setupFinished();
+	start = micros();
+//	pwmStateCalculator.createDataForSteps();
+	diff = micros() - start;
+	Serial.print("Zufällig:           ");
+	Serial.println(diff);
+	delay(1000);
+}
+
+
+void rgbTest() {
+
+	showBrightness(0, NUM_PINS, pwmStateCalculator);
 #ifdef DEBUG
 	while (1) {
 		performPWMCycle();
 	}
 #endif
-	start = micros();
-	pwmStateCalculator.createDataForSteps();
-	diff = micros() - start;
-	Serial.print("Sortiert:           ");
-	Serial.println(diff);
-	delay(1000);
-
-	createDutyRange(255, 0, NUM_PINS, pwmStateCalculator);
+	Timer1.attachInterrupt(performPWMCycle);
+	const uint8_t red = 31;
+	const uint8_t green = 30;
+	const uint8_t blue = 29;
+	pwmStateCalculator.setDuty(red, 10);
+	pwmStateCalculator.setDuty(green, 0);
+	pwmStateCalculator.setDuty(blue, 0);
 	pwmStateCalculator.setupFinished();
-	start = micros();
-	pwmStateCalculator.createDataForSteps();
-	diff = micros() - start;
-	Serial.print("Umgekehrt sortiert: ");
-	Serial.println(diff);
 	delay(1000);
-
-	createRandomDuties(NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setDuty(red, 0);
+	pwmStateCalculator.setDuty(green, 10);
+	pwmStateCalculator.setDuty(blue, 0);
 	pwmStateCalculator.setupFinished();
-	start = micros();
-	pwmStateCalculator.createDataForSteps();
-	diff = micros() - start;
-	Serial.print("Zufällig:           ");
-	Serial.println(diff);
+	delay(1000);
+	pwmStateCalculator.setDuty(red, 0);
+	pwmStateCalculator.setDuty(green, 0);
+	pwmStateCalculator.setDuty(blue, 10);
+	pwmStateCalculator.setupFinished();
 	delay(1000);
 
+	pwmStateCalculator.setDuty(blue, 0);
 
-	//===============================================
+	while (1) {
+		pwmStateCalculator.setDuty(red, 2);
+		pwmStateCalculator.setupFinished();
+		delay(100);
+		pwmStateCalculator.setDuty(red, 2);
+		pwmStateCalculator.setupFinished();
+		delay(100);
+	}
 
+	while (1) {
+		const uint8_t maxBright = 100;
+		for (uint8_t r = 0; r < maxBright; ++r) {
+			for (uint8_t g = 0; g < maxBright; ++g) {
+				for (uint8_t b = 0; b < maxBright; ++b) {
 
-*/
+					pwmStateCalculator.setDuty(red, r);
+					pwmStateCalculator.setDuty(green, g);
+					pwmStateCalculator.setDuty(blue, b);
+					pwmStateCalculator.setupFinished();
+					delay(100);
+				}
+			}
+		}
+	}
+}
 
+// The loop function is called in an endless loop
+void loop()
+{
+
+	 // benchmarkCreateData();
+
+	rgbTest();
 	// Benchmark without timer
 #ifndef DEBUG
 	Timer1.detachInterrupt();
@@ -205,6 +249,10 @@ void loop()
 			delay(1);
 		}
 	}
+
+	showBrightness(0, NUM_PINS, pwmStateCalculator);
+
+
 	showChaserLight();
 
 }
