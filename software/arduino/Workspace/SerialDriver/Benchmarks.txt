@@ -123,3 +123,26 @@ Sortiert:           8912
 Umgekehrt sortiert: 13348
 Zufällig:           9524
 
+Berechnung der zu sendenden Daten (Version 3)
+=============================================
+Zeit in Mikrosekunden / Timer läuft nicht
+
+1 Byte
+Sortiert:           160
+Umgekehrt sortiert: 160
+Zufällig:           176
+2 Bytes
+Sortiert:           596
+Umgekehrt sortiert: 604
+Zufällig:           636
+
+4 Bytes
+Sortiert:           2336
+Umgekehrt sortiert: 2340
+Zufällig:           2372
+
+8 Bytes
+Sortiert:           9244
+Umgekehrt sortiert: 9256
+Zufällig:           7804
+
