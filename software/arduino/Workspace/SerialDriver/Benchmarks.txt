@@ -99,3 +99,27 @@ Gleiche PWMs: 0.84
 Unterschiedliche PWMs: 0.70
 Gleiche PWMs: 0.84
 
+Berechnung der zu sendenden Daten (Version 2)
+=============================================
+Zeit in Mikrosekunden / Timer läuft nicht
+
+1 Byte
+Sortiert:           208
+Umgekehrt sortiert: 264
+Zufällig:           244
+
+2 Bytes
+Sortiert:           660
+Umgekehrt sortiert: 932
+Zufällig:           816
+
+4 Bytes
+Sortiert:           2364
+Umgekehrt sortiert: 3456
+Zufällig:           2864
+
+8 Bytes
+Sortiert:           8912
+Umgekehrt sortiert: 13348
+Zufällig:           9524
+

@@ -102,6 +102,26 @@ void showBrightness(uint8_t brightness, uint8_t numPins, PWMStateCalculator &cal
 	delay(1000);
 }
 
+void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalculator &calc) {
+	float stepWith = float(end - start) / numPins;
+	float duty = start;
+
+	for (uint8_t i = 0; i < numPins; ++i) {
+		calc.setDuty(i, (uint8_t) duty);
+		duty += stepWith;
+	}
+
+}
+
+void createRandomDuties(uint8_t numPins, PWMStateCalculator &calc) {
+
+	srand(17);
+	for (uint8_t i = 0; i < numPins; ++i) {
+		calc.setDuty(i, (uint8_t) rand());
+	}
+
+}
+
 void showChaserLight() {
 	uint8_t duty = 255;
 	while (1) {
@@ -144,7 +164,38 @@ void emptyFunction() {
 void loop()
 {
 
+	// Benchmarks for creating the data to be sent
+#ifndef DEBUG
+//	Timer1.attachInterrupt(performPWMCycle);
+#endif
+	unsigned long int start;
+	createDutyRange(0, 255, NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setupFinished();
+	start = micros();
+	pwmStateCalculator.createDataForSteps();
+	Serial.println(micros() - start);
+	delay(1000);
+
+	createDutyRange(255, 0, NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setupFinished();
+	start = micros();
+	pwmStateCalculator.createDataForSteps();
+	Serial.println(micros() - start);
+	delay(1000);
+
+	createRandomDuties(NUM_PINS, pwmStateCalculator);
+	pwmStateCalculator.setupFinished();
+	start = micros();
+	pwmStateCalculator.createDataForSteps();
+	Serial.println(micros() - start);
+	delay(1000);
+
+
+	//===============================================
 	// Benchmark without timer
+#ifndef DEBUG
+	Timer1.detachInterrupt();
+#endif
 	uint32_t noTimer = benchmark();
 
 	// Benchmark with empty timer

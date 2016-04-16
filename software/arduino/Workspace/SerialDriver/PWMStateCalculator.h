@@ -24,9 +24,10 @@ public:
 		}
 	}
 
+	void createDataForSteps(); //TODO Just for benchmarking
+
 private:
 	void writeData();
-	void createDataForSteps();
 	void createStepData(uint8_t duty, uint8_t stepIdx);
 	uint8_t sortChangingStepsAndRemoveDuplicates();
 	void restartCycle();
