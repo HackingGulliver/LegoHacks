@@ -13,7 +13,7 @@
 namespace {
 
 const int MICROSEC_PER_AT_100HZ = 39;
-const int NUM_PINS = 8;
+const int NUM_PINS = 16;
 }
 
 void performPWMCycle();
@@ -37,10 +37,10 @@ void setup() {
 }
 #else
 void setup() {
-	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
-	while (1) {
-		performPWMCycle();
-	}
+//	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
+//	while (1) {
+//		performPWMCycle();
+//	}
 }
 #endif
 
@@ -169,25 +169,37 @@ void loop()
 //	Timer1.attachInterrupt(performPWMCycle);
 #endif
 	unsigned long int start;
+	unsigned long int diff;
 	createDutyRange(0, 255, NUM_PINS, pwmStateCalculator);
 	pwmStateCalculator.setupFinished();
+#ifdef DEBUG
+	while (1) {
+		performPWMCycle();
+	}
+#endif
 	start = micros();
 	pwmStateCalculator.createDataForSteps();
-	Serial.println(micros() - start);
+	diff = micros() - start;
+	Serial.print("Sortiert:           ");
+	Serial.println(diff);
 	delay(1000);
 
 	createDutyRange(255, 0, NUM_PINS, pwmStateCalculator);
 	pwmStateCalculator.setupFinished();
 	start = micros();
 	pwmStateCalculator.createDataForSteps();
-	Serial.println(micros() - start);
+	diff = micros() - start;
+	Serial.print("Umgekehrt sortiert: ");
+	Serial.println(diff);
 	delay(1000);
 
 	createRandomDuties(NUM_PINS, pwmStateCalculator);
 	pwmStateCalculator.setupFinished();
 	start = micros();
 	pwmStateCalculator.createDataForSteps();
-	Serial.println(micros() - start);
+	diff = micros() - start;
+	Serial.print("Zufällig:           ");
+	Serial.println(diff);
 	delay(1000);
 
 

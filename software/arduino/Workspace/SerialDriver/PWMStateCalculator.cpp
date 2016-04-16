@@ -11,14 +11,14 @@
 PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	numChannels = channels;
 	numBytes = ((channels-1) >> 3)+1;
-	dataForSteps = new uint8_t[numBytes * (numChannels+1)];
-	changingSteps = new uint8_t[numChannels+1];
+	dataForSteps = new uint8_t[(numBytes+1) * (numChannels+1)];
 	duties = new uint8_t[numChannels];
 
 	currentStep = 0;
-	nextChangingStepPtr = changingSteps;
 	nextChangingStep = 0;
 	dutyChanged = false;
+	nextData = dataForSteps;
+
 }
 
 PWMStateCalculator::~PWMStateCalculator() {
@@ -39,19 +39,21 @@ void PWMStateCalculator::writeData() {
 	if (nextChangingStep == 0) {
 		restartCycle();
 	}
-
+#ifndef DEBUG
 	PORTD = 0;
+#endif
 	uint8_t nb = numBytes;
 	while (nb--) {
 		SPI.transfer(*nextData++);
 	}
+#ifndef DEBUG
 	PORTD = 4; // store = 1
+#endif
 
-	++nextChangingStepPtr;
-	if (nextChangingStepPtr - changingSteps >= numChangingSteps) {
+	if (nextData == endData) {
 		nextChangingStep = 0;
 	} else {
-		nextChangingStep = *nextChangingStepPtr;
+		nextChangingStep = *nextData++;
 	}
 
 	interrupts();
@@ -60,63 +62,46 @@ void PWMStateCalculator::writeData() {
 void PWMStateCalculator::createDataForSteps() {
 	dutyChanged = false;
 
-	changingSteps[0] = 0;
-	memcpy(changingSteps+1, duties, numChannels);
+	uint8_t nextDuty;
+	uint8_t duty = 0;
 
-	numChangingSteps = sortChangingStepsAndRemoveDuplicates();
-	for (uint8_t cs = 0; cs < numChangingSteps; ++cs) {
-		uint8_t duty = changingSteps[cs];
-		createStepData(duty, cs);
-	}
+	uint8_t *destAddr = dataForSteps;
+	do {
+		uint8_t bits = 0;
+		*destAddr++ = duty;
 
-}
+		nextDuty = 255;
 
-void PWMStateCalculator::createStepData(uint8_t duty, uint8_t stepIdx) {
-	uint8_t *destAddr = dataForSteps + stepIdx * numBytes;
+		uint8_t ch = 0;
+		while (ch < numChannels) {
+			uint8_t nextChunkSize = (ch + 8 > numChannels) ? numChannels - ch : 8;
+			while (nextChunkSize--) {
+				bits <<= 1;
+				if (duties[ch] > duty || duty == 255) {
+					bits |= 1;
 
-	uint8_t bits = 0;
-	for (uint8_t ch = 0; ch < numChannels; ++ch) {
-		bits <<= 1;
-		if (duties[ch] > duty) {
-			bits |= 1;
-		}
-		if ((ch & 0x7) == 0x7) {
+					if (duties[ch] < nextDuty) {
+						nextDuty = duties[ch];
+					}
+				}
+				++ch;
+			}
 			*destAddr++ = bits;
 			bits = 0;
 		}
-	}
-	*destAddr = bits;
+
+		duty = nextDuty;
+	} while (nextDuty != 255);
+
+	endData = destAddr;
 }
 
-uint8_t PWMStateCalculator::sortChangingStepsAndRemoveDuplicates() {
-
-	// Sort
-	for (uint8_t i = 1; i <= numChannels; ++i) {
-	    for (uint8_t k = i; k > 0 && changingSteps[k] < changingSteps[k-1]; k--) {
-	    	uint8_t tmp = changingSteps[k];
-	    	changingSteps[k] = changingSteps[k-1];
-	    	changingSteps[k-1] = tmp;
-	    }
-	}
-
-	// Remove duplicates
-	uint8_t numDifferent = 1;
-	uint8_t lastVal = changingSteps[0];
-	for (uint8_t i = 1; i <= numChannels; ++i) {
-		if (changingSteps[i] != lastVal
-			&& changingSteps[i] != 255) { // Nothing to change at step 255. This means: always on
-			lastVal = changingSteps[numDifferent++] = changingSteps[i];
-		}
-	}
-	return numDifferent;
-}
 
 void PWMStateCalculator::restartCycle() {
 	if (dutyChanged) {
 		createDataForSteps();
 	}
-	nextChangingStepPtr = changingSteps;
-	nextChangingStep = *nextChangingStepPtr;
 	nextData = dataForSteps;
+	nextChangingStep = *nextData++;
 }
 
