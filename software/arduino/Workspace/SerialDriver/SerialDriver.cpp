@@ -13,7 +13,7 @@
 namespace {
 
 const int MICROSEC_PER_AT_100HZ = 39;
-const int NUM_PINS = 8;
+const int NUM_PINS = 16;
 }
 
 void performPWMCycle();

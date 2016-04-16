@@ -71,23 +71,23 @@ void PWMStateCalculator::createDataForSteps() {
 		*destAddr++ = duty;
 
 		nextDuty = 255;
-		for (uint8_t ch = 0; ch < numChannels; ++ch) {
-			bits <<= 1;
-			if (duties[ch] > duty || duty == 255) {
-				bits |= 1;
 
-				if (duties[ch] < nextDuty) {
-					nextDuty = duties[ch];
+		uint8_t ch = 0;
+		while (ch < numChannels) {
+			uint8_t nextChunkSize = (ch + 8 > numChannels) ? numChannels - ch : 8;
+			while (nextChunkSize--) {
+				bits <<= 1;
+				if (duties[ch] > duty || duty == 255) {
+					bits |= 1;
+
+					if (duties[ch] < nextDuty) {
+						nextDuty = duties[ch];
+					}
 				}
+				++ch;
 			}
-			if ((ch & 0x7) == 0x7) {
-				*destAddr++ = bits;
-				bits = 0;
-			}
-
-		}
-		if (numChannels & 0x7) {
 			*destAddr++ = bits;
+			bits = 0;
 		}
 
 		duty = nextDuty;

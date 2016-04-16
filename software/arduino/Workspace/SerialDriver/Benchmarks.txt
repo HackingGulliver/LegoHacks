@@ -131,6 +131,7 @@ Zeit in Mikrosekunden / Timer läuft nicht
 Sortiert:           160
 Umgekehrt sortiert: 160
 Zufällig:           176
+
 2 Bytes
 Sortiert:           596
 Umgekehrt sortiert: 604
@@ -145,4 +146,28 @@ Zufällig:           2372
 Sortiert:           9244
 Umgekehrt sortiert: 9256
 Zufällig:           7804
+
+Berechnung der zu sendenden Daten (Version 4)
+=============================================
+Zeit in Mikrosekunden / Timer läuft nicht
+
+1 Byte
+Sortiert:           128
+Umgekehrt sortiert: 128
+Zufällig:           148
+
+2 Bytes
+Sortiert:           464
+Umgekehrt sortiert: 476
+Zufällig:           496
+
+4 Bytes
+Sortiert:           1824
+Umgekehrt sortiert: 1828
+Zufällig:           1760
+
+8 Bytes
+Sortiert:           7196
+Umgekehrt sortiert: 7204
+Zufällig:           6076
 
