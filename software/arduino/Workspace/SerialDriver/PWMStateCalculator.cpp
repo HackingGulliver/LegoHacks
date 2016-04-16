@@ -112,9 +112,9 @@ void PWMStateCalculator::createDataForSteps() {
 		while (ch < numChannels) {
 			uint8_t nextChunkSize = (ch + 8 > numChannels) ? numChannels - ch : 8;
 			while (nextChunkSize--) {
-				bits <<= 1;
+				bits >>= 1;
 				if (duties[ch] > duty || duty == 255) {
-					bits |= 1;
+					bits |= 128;
 
 					if (duties[ch] < nextDuty) {
 						nextDuty = duties[ch];
