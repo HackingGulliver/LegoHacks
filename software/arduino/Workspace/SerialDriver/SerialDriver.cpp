@@ -3,13 +3,9 @@
 #include "PWMStateCalculator.h"
 
 #ifndef DEBUG
-#include <SPI.h>
 #include <TimerOne.h>
 #endif
 
-#define SHIFT_DATA_PIN 11  // MOSI
-#define SHIFT_CLOCK_PIN 13 // SPI Clock
-#define SHIFT_STORE_PIN 2
 namespace {
 
 const int MICROSEC_PER_AT_100HZ = 39;
@@ -23,11 +19,6 @@ PWMStateCalculator pwmStateCalculator(NUM_PINS);
 
 #ifndef DEBUG
 void setup() {
-
-	pinMode(SHIFT_STORE_PIN, OUTPUT);
-
-	SPI.begin();
-	SPI.beginTransaction(SPISettings(16000000, LSBFIRST, SPI_MODE0));
 
 	Timer1.initialize();
 	Timer1.setPeriod(MICROSEC_PER_AT_100HZ);
@@ -44,52 +35,23 @@ void setup() {
 }
 #endif
 
-void writeToShift(uint8_t value, boolean finish) {
-#ifndef DEBUG
-	PORTD = 0;
-
-	SPI.transfer(value);
-
-	if (finish) {
-		PORTD = 4; // store = 1
-	}
-
-#endif
-}
-
-void pwm(uint8_t duty, uint8_t value) {
-	static uint8_t current = 0;
-	if (current <= duty) {
-		writeToShift(value, true);
-	} else {
-		writeToShift(0, true);
-	}
-	current++;
-}
 
 void performPWMCycle() {
 	pwmStateCalculator.tick();
 }
 
-void mockPWMCycle() {
-	volatile static uint8_t currStep = 0;
-	if ((currStep & 7) == 0) {
-		writeToShift(currStep, false);
-		writeToShift(currStep, false);
-		writeToShift(currStep, false);
-		writeToShift(currStep, true);
-	}
-	currStep++;
-}
-
-void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc) {
-	float stepWith = float(255 - startValue) / numPins;
-	float duty = startValue;
+void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalculator &calc) {
+	float stepWith = float(end - start) / numPins;
+	float duty = start;
 
 	for (uint8_t i = 0; i < numPins; ++i) {
 		calc.setDuty(i, (uint8_t) duty);
 		duty += stepWith;
 	}
+}
+
+void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc) {
+	createDutyRange(0, 255, numPins, calc);
 	calc.setupFinished();
 	delay(1000);
 }
@@ -102,16 +64,6 @@ void showBrightness(uint8_t brightness, uint8_t numPins, PWMStateCalculator &cal
 	delay(1000);
 }
 
-void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalculator &calc) {
-	float stepWith = float(end - start) / numPins;
-	float duty = start;
-
-	for (uint8_t i = 0; i < numPins; ++i) {
-		calc.setDuty(i, (uint8_t) duty);
-		duty += stepWith;
-	}
-
-}
 
 void createRandomDuties(uint8_t numPins, PWMStateCalculator &calc) {
 
@@ -168,6 +120,7 @@ void loop()
 #ifndef DEBUG
 //	Timer1.attachInterrupt(performPWMCycle);
 #endif
+/*
 	unsigned long int start;
 	unsigned long int diff;
 	createDutyRange(0, 255, NUM_PINS, pwmStateCalculator);
@@ -204,6 +157,10 @@ void loop()
 
 
 	//===============================================
+
+
+*/
+
 	// Benchmark without timer
 #ifndef DEBUG
 	Timer1.detachInterrupt();
