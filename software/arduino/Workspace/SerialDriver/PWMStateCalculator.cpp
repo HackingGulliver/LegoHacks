@@ -47,6 +47,7 @@ PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	nextChangingStep = 0;
 	dutyChanged = false;
 	nextData = dataForSteps;
+	nextDutyCalc = 255;
 
 }
 
@@ -56,8 +57,10 @@ PWMStateCalculator::~PWMStateCalculator() {
 
 void PWMStateCalculator::setupHardware() {
 	pinMode(SHIFT_STORE_PIN, OUTPUT);
+#ifndef DEBUG
 	SPI.begin();
 	SPI.beginTransaction(SPISettings(16000000, LSBFIRST, SPI_MODE0));
+#endif
 }
 
 
@@ -74,6 +77,9 @@ void PWMStateCalculator::writeData() {
 
 	if (nextChangingStep == 0) {
 		restartCycle();
+	}
+	if (nextDutyCalc != 255) {
+		createDataForStep(nextDutyCalc);
 	}
 #ifndef DEBUG
 	PORT_FOR_STORE_PIN &= ~STORE_PIN_SET_BITS;
@@ -95,47 +101,47 @@ void PWMStateCalculator::writeData() {
 	interrupts();
 }
 
-void PWMStateCalculator::createDataForSteps() {
+void PWMStateCalculator::createDataForStep(uint8_t duty) {
 	dutyChanged = false;
 
-	uint8_t nextDuty;
-	uint8_t duty = 0;
+	if (duty == 0) {
+		nextDutyCalcDestAddr = dataForSteps;
+		*nextDutyCalcDestAddr++ = duty;
+		endData = dataForSteps;
+	}
+	uint8_t bits = 0;
 
-	uint8_t *destAddr = dataForSteps;
-	do {
-		uint8_t bits = 0;
-		*destAddr++ = duty;
+	nextDutyCalc = 255;
 
-		nextDuty = 255;
+	uint8_t ch = 0;
+	while (ch < numChannels) {
+		uint8_t nextChunkSize = (ch + 8 > numChannels) ? numChannels - ch : 8;
+		while (nextChunkSize--) {
+			bits >>= 1;
+			if (duties[ch] > duty || duty == 255) {
+				bits |= 128;
 
-		uint8_t ch = 0;
-		while (ch < numChannels) {
-			uint8_t nextChunkSize = (ch + 8 > numChannels) ? numChannels - ch : 8;
-			while (nextChunkSize--) {
-				bits <<= 1;
-				if (duties[ch] > duty || duty == 255) {
-					bits |= 1;
-
-					if (duties[ch] < nextDuty) {
-						nextDuty = duties[ch];
-					}
+				if (duties[ch] < nextDutyCalc) {
+					nextDutyCalc = duties[ch];
 				}
-				++ch;
 			}
-			*destAddr++ = bits;
-			bits = 0;
+			++ch;
 		}
+		*nextDutyCalcDestAddr++ = bits;
+		bits = 0;
+	}
 
-		duty = nextDuty;
-	} while (nextDuty != 255);
-
-	endData = destAddr;
+	if (nextDutyCalc == 255) {
+		endData = nextDutyCalcDestAddr;
+	} else {
+		*nextDutyCalcDestAddr++ = nextDutyCalc;
+	}
 }
 
 
 void PWMStateCalculator::restartCycle() {
 	if (dutyChanged) {
-		createDataForSteps();
+		nextDutyCalc = 0;
 	}
 	nextData = dataForSteps;
 	nextChangingStep = *nextData++;
