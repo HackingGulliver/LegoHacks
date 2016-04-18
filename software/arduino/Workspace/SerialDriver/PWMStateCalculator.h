@@ -71,7 +71,7 @@ public:
 private:
 	void writeData();
 	void restartCycle();
-	void createDataForSteps();
+	void createDataForStep(uint8_t duty);
 	void setupHardware();
 
 private:
@@ -80,12 +80,14 @@ private:
 	uint8_t currentStep;	// The current step in a whole PWM cycle which consists of 256 steps.
 	uint8_t nextChangingStep; // Number of the PWM step when the next data has to be sent.
 	boolean dutyChanged;    // <true> after <setupFinished> was called.
+	uint8_t nextDutyCalc;
 
 
 	uint8_t *dataForSteps;	// This array contains all data that has to be sent at certain steps. Its size is (numBytes+1)*(numChannels+1).
 	uint8_t *nextData;		// Pointer into the array dataForSteps for the next set of data to send
 	uint8_t *duties;		// Duty values for all channels
-	uint8_t* endData;		// This pointer marks the end of the precalculated data array.
+	uint8_t *endData;		// This pointer marks the end of the precalculated data array.
+	uint8_t *nextDutyCalcDestAddr;
 };
 
 #endif /* PWMSTATECALCULATOR_H_ */

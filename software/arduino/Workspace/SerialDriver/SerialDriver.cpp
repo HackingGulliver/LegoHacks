@@ -9,7 +9,7 @@
 namespace {
 
 const int MICROSEC_PER_AT_100HZ = 39;
-const int NUM_PINS = 32;
+const int NUM_PINS = 8;
 }
 
 void performPWMCycle();
@@ -147,13 +147,17 @@ void rgbTest() {
 	showBrightness(0, NUM_PINS, pwmStateCalculator);
 #ifdef DEBUG
 	while (1) {
+		pwmStateCalculator.setDuty(0, 1);
+		pwmStateCalculator.setupFinished();
 		performPWMCycle();
 	}
 #endif
+#ifndef DEBUG
 	Timer1.attachInterrupt(performPWMCycle);
-	const uint8_t red = 31;
-	const uint8_t green = 30;
-	const uint8_t blue = 29;
+#endif
+	const uint8_t red = 7;
+	const uint8_t green = 6;
+	const uint8_t blue = 5;
 	pwmStateCalculator.setDuty(red, 10);
 	pwmStateCalculator.setDuty(green, 0);
 	pwmStateCalculator.setDuty(blue, 0);
@@ -173,16 +177,26 @@ void rgbTest() {
 	pwmStateCalculator.setDuty(blue, 0);
 
 	while (1) {
-		pwmStateCalculator.setDuty(red, 2);
-		pwmStateCalculator.setupFinished();
-		delay(100);
-		pwmStateCalculator.setDuty(red, 2);
+		pwmStateCalculator.setDuty(7,1);
 		pwmStateCalculator.setupFinished();
 		delay(100);
 	}
 
+//	while (1) {
+//		for (uint8_t r = 0; r < 255; ++r) {
+//			pwmStateCalculator.setDuty(red, r);
+//			pwmStateCalculator.setupFinished();
+//			delay(10);
+//		}
+//		for (uint8_t r = 255; r > 0; --r) {
+//			pwmStateCalculator.setDuty(red, r);
+//			pwmStateCalculator.setupFinished();
+//			delay(10);
+//		}
+//	}
+
 	while (1) {
-		const uint8_t maxBright = 100;
+		const uint8_t maxBright = 15;
 		for (uint8_t r = 0; r < maxBright; ++r) {
 			for (uint8_t g = 0; g < maxBright; ++g) {
 				for (uint8_t b = 0; b < maxBright; ++b) {
@@ -191,7 +205,7 @@ void rgbTest() {
 					pwmStateCalculator.setDuty(green, g);
 					pwmStateCalculator.setDuty(blue, b);
 					pwmStateCalculator.setupFinished();
-					delay(100);
+					delay(10);
 				}
 			}
 		}
