@@ -14,14 +14,16 @@ class PowerController {
 
 public:
 
-	virtual void setDuty(uint8_t channel, uint8_t duty) = 0;
-	virtual void allDutiesSet() = 0;
+	virtual void setDuty(uint8_t channel, uint8_t duty);
+	virtual void allDutiesSet();
 
 	void chain(PowerController *chainedController) {
 		this->chainedController = chainedController;
 	}
 
 protected:
+	PowerController() {}
+
 	PowerController *chainedController;
 
 };
