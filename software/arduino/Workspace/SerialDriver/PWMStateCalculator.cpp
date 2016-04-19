@@ -42,6 +42,7 @@ PWMStateCalculator::PWMStateCalculator(uint8_t channels) {
 	numBytes = ((channels-1) >> 3)+1;
 	dataForSteps = new uint8_t[(numBytes+1) * (numChannels+1)];
 	duties = new uint8_t[numChannels];
+	memset(duties, 0, numChannels);
 
 	currentStep = 0;
 	nextChangingStep = 0;

@@ -55,7 +55,7 @@ public:
 	/**
 	 * Must be called after setting the duty cycles of all channels. Otherwise these changes will no be effective.
 	 */
-	void setupFinished() { 	dutyChanged = true; }
+	void allDutiesSet() { 	dutyChanged = true; }
 
 	/**
 	 * Must be called from a timer to write out the PWM data to a serial device.
