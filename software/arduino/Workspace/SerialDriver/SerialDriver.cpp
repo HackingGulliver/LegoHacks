@@ -1,7 +1,7 @@
 // Do not remove the include below
 #include "SerialDriver.h"
 #include "PWMController.h"
-
+#include "RGBLed.h"
 
 #ifndef DEBUG
 #include <TimerOne.h>
@@ -224,9 +224,9 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
-	pwmController.setDuty(NUM_PINS-1, 12);
-	pwmController.setDuty(NUM_PINS-2, 12);
-	pwmController.allDutiesSet();
+	RGBLed rgbLed(NUM_PINS-1, NUM_PINS-2, NUM_PINS-3);
+	rgbLed.chain(&pwmController);
+	rgbLed.setColor(50, 20, 30);
 
 //	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
 	uint32_t differentPWM = benchmark();
