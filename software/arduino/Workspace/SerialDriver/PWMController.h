@@ -32,6 +32,7 @@ public:
 private:
 	void tick();
 	static void timerCallback();
+	static void timedPowerControllerCallback();
 	void initStateCalculator(uint8_t channels);
 	void initTimer(uint8_t frequency);
 

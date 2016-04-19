@@ -206,7 +206,7 @@ void rgbTest() {
 // The loop function is called in an endless loop
 void loop()
 {
-
+//Timer3.initialize(1000);
 	 // benchmarkCreateData();
 
 //	rgbTest();
