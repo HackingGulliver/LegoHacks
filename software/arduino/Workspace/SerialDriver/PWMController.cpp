@@ -13,6 +13,19 @@
 
 PWMController *PWMController::instance = NULL;
 
+PWMController::PWMController(uint8_t channels, uint8_t frequency, uint8_t maxNumTimedPowerControllers) {
+
+	instance = this;
+
+	initStateCalculator(channels);
+	initTimedPowerControllers(maxNumTimedPowerControllers);
+	initTimer(frequency);
+}
+
+PWMController::~PWMController() {
+	// TODO Auto-generated destructor stub
+}
+
 void PWMController::initStateCalculator(uint8_t channels) {
 	pwmStateCalculator = new PWMStateCalculator(channels);
 }
@@ -23,24 +36,33 @@ void PWMController::initTimer(uint8_t frequency) {
 	Timer1.setPeriod(timerPeriod);
 	Timer1.attachInterrupt(timerCallback);
 
-	MsTimer2::set(1, timedPowerControllerCallback);
+	MsTimer2::set(10, timedPowerControllerCallback);
 	MsTimer2::start();
 }
 
-PWMController::PWMController(uint8_t channels, uint8_t frequency) {
-
-	instance = this;
-
-	initStateCalculator(channels);
-	initTimer(frequency);
+void PWMController::initTimedPowerControllers(uint8_t maxNumTimedPowerControllers) {
+	this->maxNumTimedPowerControllers = maxNumTimedPowerControllers;
+	numTimedPowerControllers = 0;
+	timedPowerControllers = new TimedPowerController*[maxNumTimedPowerControllers];
 }
 
-PWMController::~PWMController() {
-	// TODO Auto-generated destructor stub
+void PWMController::addTimedPowerController(TimedPowerController* tpc) {
+	if (numTimedPowerControllers < maxNumTimedPowerControllers) {
+		timedPowerControllers[numTimedPowerControllers] = tpc;
+		++numTimedPowerControllers;
+	}
 }
 
 void PWMController::tick() {
 	pwmStateCalculator->tick();
+}
+
+void PWMController::timedPowerControllerTick() {
+	unsigned long now = millis();
+
+	for (uint8_t i = 0; i < numTimedPowerControllers; ++i) {
+		timedPowerControllers[i]->tick(now);
+	}
 }
 
 void PWMController::timerCallback() {
@@ -48,8 +70,6 @@ void PWMController::timerCallback() {
 }
 
 void PWMController::timedPowerControllerCallback() {
-	static uint8_t val = 0;
-	instance->setDuty(7, val++);
-	instance->allDutiesSet();
+	instance->timedPowerControllerTick();
 }
 

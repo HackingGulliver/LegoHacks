@@ -1,6 +1,7 @@
 // Do not remove the include below
 #include "SerialDriver.h"
 #include "PWMController.h"
+#include "Pulse.h"
 #include "RGBLed.h"
 
 #ifndef DEBUG
@@ -224,8 +225,12 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
+	Pulse pulse;
+	pulse.chain(&pwmController);
+	pwmController.addTimedPowerController(&pulse);
+
 	RGBLed rgbLed(NUM_PINS-1, NUM_PINS-2, NUM_PINS-3);
-	rgbLed.chain(&pwmController);
+	rgbLed.chain(&pulse);
 	rgbLed.setColor(50, 20, 30);
 
 //	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
