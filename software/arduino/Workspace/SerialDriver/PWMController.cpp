@@ -10,6 +10,7 @@
 #include <TimerOne.h>
 #include <MsTimer2.h>
 #endif
+#include "TimedPowerController.h"
 
 PWMController *PWMController::instance = NULL;
 
@@ -36,7 +37,7 @@ void PWMController::initTimer(uint8_t frequency) {
 	Timer1.setPeriod(timerPeriod);
 	Timer1.attachInterrupt(timerCallback);
 
-	MsTimer2::set(10, timedPowerControllerCallback);
+	MsTimer2::set(TimedPowerControllerConstants::UPDATE_INTERVAL, timedPowerControllerCallback);
 	MsTimer2::start();
 }
 

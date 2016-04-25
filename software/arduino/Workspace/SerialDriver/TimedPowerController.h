@@ -10,6 +10,10 @@
 
 #include "PowerController.h"
 
+namespace TimedPowerControllerConstants {
+	const uint16_t UPDATE_INTERVAL = 10; // Time in milliseconds between two ticks
+}
+
 class TimedPowerController: public PowerController {
 
 public:

@@ -225,7 +225,7 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
-	Pulse pulse;
+	Pulse pulse(3);
 	pulse.chain(&pwmController);
 	pwmController.addTimedPowerController(&pulse);
 

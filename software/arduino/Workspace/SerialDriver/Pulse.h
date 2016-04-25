@@ -9,14 +9,21 @@
 #define PULSE_H_
 
 #include "TimedPowerController.h"
+#include "ChannelDuty.h"
 
 class Pulse: public TimedPowerController {
 
 public:
-	Pulse();
+	Pulse(uint8_t numChannels);
 	virtual ~Pulse();
 
 	virtual void tick(unsigned long milliSeconds);
+
+	virtual void setDuty(uint8_t channel, uint8_t duty);
+
+private:
+	ChannelDuty *channelDuties;
+	uint8_t numChannels;
 };
 
 #endif /* PULSE_H_ */

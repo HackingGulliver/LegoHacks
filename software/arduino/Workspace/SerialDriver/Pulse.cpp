@@ -7,8 +7,10 @@
 
 #include "Pulse.h"
 
-Pulse::Pulse() {
-	// TODO Auto-generated constructor stub
+Pulse::Pulse(uint8_t numChannels)
+	: numChannels(numChannels)
+{
+	channelDuties = new ChannelDuty[numChannels];
 
 }
 
@@ -18,7 +20,26 @@ Pulse::~Pulse() {
 
 void Pulse::tick(unsigned long milliSeconds) {
 
-	setDuty(7, milliSeconds & 0xff);
+	uint32_t period = 2000;
+	uint8_t precision = 12;
+
+	uint32_t factor = ((milliSeconds % period)<<precision) / period;
+	uint32_t duty;
+	for (uint8_t i = 0; i < numChannels; ++i) {
+		if (channelDuties[i].getChannel() != 255) {
+			duty = (channelDuties[i].getDuty() * factor) >> precision;
+			chainedController->setDuty(channelDuties[i].getChannel(), duty);
+		}
+	}
 	allDutiesSet();
 }
 
+void Pulse::setDuty(uint8_t channel, uint8_t duty) {
+	for (uint8_t i = 0; i < numChannels; ++i) {
+		if (channelDuties[i].getChannel() == channel || channelDuties[i].getChannel() == 255) {
+			channelDuties[i].setChannel(channel);
+			channelDuties[i].setDuty(duty);
+			break;
+		}
+	}
+}
