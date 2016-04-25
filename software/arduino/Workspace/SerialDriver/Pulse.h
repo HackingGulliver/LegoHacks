@@ -24,6 +24,7 @@ public:
 private:
 	ChannelDuty *channelDuties;
 	uint8_t numChannels;
+	uint32_t millisOffset;
 };
 
 #endif /* PULSE_H_ */

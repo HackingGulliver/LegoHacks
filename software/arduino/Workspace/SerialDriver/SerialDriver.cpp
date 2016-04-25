@@ -231,7 +231,7 @@ void loop()
 
 	RGBLed rgbLed(NUM_PINS-1, NUM_PINS-2, NUM_PINS-3);
 	rgbLed.chain(&pulse);
-	rgbLed.setColor(50, 20, 30);
+	rgbLed.setColor(255, 255, 0);
 
 //	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
 	uint32_t differentPWM = benchmark();
