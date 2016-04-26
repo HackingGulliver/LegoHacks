@@ -14,7 +14,14 @@
 class Pulse: public TimedPowerController {
 
 public:
-	Pulse(uint8_t numChannels, uint32_t pulseWidth);
+	enum Waveform {
+		SAW_TOOTH_RISE,
+		SAW_TOOTH_FALL,
+		TRIANGLE,
+		BLINK
+	};
+
+	Pulse(uint8_t numChannels, uint32_t pulseWidth, Waveform waveform);
 	virtual ~Pulse();
 
 	virtual void tick(unsigned long milliSeconds);
@@ -29,6 +36,7 @@ private:
 	uint32_t millisOffset;
 	uint32_t pulseWidth;  // Pulse width in milliseconds
 	float frequencyKHz;   // Frequency in kHz (derived from pulseWidth
+	Waveform waveform;
 };
 
 #endif /* PULSE_H_ */
