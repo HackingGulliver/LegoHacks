@@ -7,9 +7,10 @@
 
 #include "Pulse.h"
 
-Pulse::Pulse(uint8_t numChannels, uint32_t pulseWidth)
+Pulse::Pulse(uint8_t numChannels, uint32_t pulseWidth, Waveform waveform)
 	: numChannels(numChannels)
 	, pulseWidth(pulseWidth)
+	, waveform(waveform)
 {
 	channelDuties = new ChannelDuty[numChannels];
 	millisOffset = 0l;
@@ -31,10 +32,20 @@ void Pulse::tick(unsigned long milliSeconds) {
 		millisOffset += pulseWidth;
 		timebase -= pulseWidth;
 	}
-	if (timebase >= (pulseWidth >> 1)) {
+	if (waveform == TRIANGLE) {
+		if (timebase >= (pulseWidth >> 1)) {
+			timebase = pulseWidth - timebase;
+		}
+		timebase <<= 1;
+	} else if (waveform == SAW_TOOTH_RISE) {
+		// nothing to do
+	} else if (waveform == SAW_TOOTH_FALL) {
 		timebase = pulseWidth - timebase;
+	} else if (waveform == BLINK) {
+		timebase = timebase >= (pulseWidth >> 1)
+				? pulseWidth
+				: 0;
 	}
-	timebase <<= 1;
 
 	float factor = float(timebase) * frequencyKHz;
 	float duty;
