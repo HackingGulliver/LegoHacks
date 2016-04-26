@@ -8,9 +8,24 @@
 #include "PWMController.h"
 #ifndef DEBUG
 #include <TimerOne.h>
+#include <MsTimer2.h>
 #endif
+#include "TimedPowerController.h"
 
 PWMController *PWMController::instance = NULL;
+
+PWMController::PWMController(uint8_t channels, uint8_t frequency, uint8_t maxNumTimedPowerControllers) {
+
+	instance = this;
+
+	initStateCalculator(channels);
+	initTimedPowerControllers(maxNumTimedPowerControllers);
+	initTimer(frequency);
+}
+
+PWMController::~PWMController() {
+	// TODO Auto-generated destructor stub
+}
 
 void PWMController::initStateCalculator(uint8_t channels) {
 	pwmStateCalculator = new PWMStateCalculator(channels);
@@ -21,24 +36,41 @@ void PWMController::initTimer(uint8_t frequency) {
 	uint32_t timerPeriod = (1000000 / frequency) >> 8;
 	Timer1.setPeriod(timerPeriod);
 	Timer1.attachInterrupt(timerCallback);
+
+	MsTimer2::set(TimedPowerControllerConstants::UPDATE_INTERVAL, timedPowerControllerCallback);
+	MsTimer2::start();
 }
 
-PWMController::PWMController(uint8_t channels, uint8_t frequency) {
-
-	instance = this;
-
-	initStateCalculator(channels);
-	initTimer(frequency);
+void PWMController::initTimedPowerControllers(uint8_t maxNumTimedPowerControllers) {
+	this->maxNumTimedPowerControllers = maxNumTimedPowerControllers;
+	numTimedPowerControllers = 0;
+	timedPowerControllers = new TimedPowerController*[maxNumTimedPowerControllers];
 }
 
-PWMController::~PWMController() {
-	// TODO Auto-generated destructor stub
+void PWMController::addTimedPowerController(TimedPowerController* tpc) {
+	if (numTimedPowerControllers < maxNumTimedPowerControllers) {
+		timedPowerControllers[numTimedPowerControllers] = tpc;
+		++numTimedPowerControllers;
+	}
 }
 
 void PWMController::tick() {
 	pwmStateCalculator->tick();
 }
 
+void PWMController::timedPowerControllerTick() {
+	unsigned long now = millis();
+
+	for (uint8_t i = 0; i < numTimedPowerControllers; ++i) {
+		timedPowerControllers[i]->tick(now);
+	}
+}
+
 void PWMController::timerCallback() {
 	instance->tick();
 }
+
+void PWMController::timedPowerControllerCallback() {
+	instance->timedPowerControllerTick();
+}
+

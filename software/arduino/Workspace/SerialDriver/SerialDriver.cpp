@@ -1,6 +1,7 @@
 // Do not remove the include below
 #include "SerialDriver.h"
 #include "PWMController.h"
+#include "Pulse.h"
 #include "RGBLed.h"
 
 #ifndef DEBUG
@@ -206,7 +207,7 @@ void rgbTest() {
 // The loop function is called in an endless loop
 void loop()
 {
-
+//Timer3.initialize(1000);
 	 // benchmarkCreateData();
 
 //	rgbTest();
@@ -224,20 +225,31 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
+	Pulse pulse(6, 1000);
+	pulse.chain(&pwmController);
+	pwmController.addTimedPowerController(&pulse);
+
 	RGBLed rgbLed(NUM_PINS-1, NUM_PINS-2, NUM_PINS-3);
-	rgbLed.chain(&pwmController);
-	rgbLed.setColor(50, 20, 30);
+	rgbLed.chain(&pulse);
+	rgbLed.setColor(255, 255, 0);
+
+	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-5, NUM_PINS-6);
+	rgbLed2.chain(&pulse);
+	rgbLed2.setColor(64, 128, 255);
 
 //	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
 	uint32_t differentPWM = benchmark();
 
 //	showBrightness(10, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(500);
 	uint32_t samePWM = benchmark();
 
 //	showBrightness(5, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(250);
 	samePWM += benchmark();
 
 //	showBrightness(0, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(4000);
 	samePWM += benchmark();
 
 	Serial.println();
