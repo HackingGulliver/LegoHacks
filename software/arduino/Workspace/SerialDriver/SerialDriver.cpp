@@ -225,7 +225,7 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
-	Pulse pulse(3);
+	Pulse pulse(6, 1000);
 	pulse.chain(&pwmController);
 	pwmController.addTimedPowerController(&pulse);
 
@@ -233,16 +233,23 @@ void loop()
 	rgbLed.chain(&pulse);
 	rgbLed.setColor(255, 255, 0);
 
+	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-5, NUM_PINS-6);
+	rgbLed2.chain(&pulse);
+	rgbLed2.setColor(64, 128, 255);
+
 //	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
 	uint32_t differentPWM = benchmark();
 
 //	showBrightness(10, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(500);
 	uint32_t samePWM = benchmark();
 
 //	showBrightness(5, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(250);
 	samePWM += benchmark();
 
 //	showBrightness(0, NUM_PINS, pwmStateCalculator);
+	pulse.changePulseWidth(4000);
 	samePWM += benchmark();
 
 	Serial.println();
