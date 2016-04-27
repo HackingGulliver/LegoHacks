@@ -21,33 +21,54 @@ Pulse::~Pulse() {
 	// TODO Auto-generated destructor stub
 }
 
-void Pulse::tick(unsigned long milliSeconds) {
-
+/**
+ * The baseTime is a value for milliseconds between the start of a period and its end.
+ * So its value is always between 0 and <pulseWidth>. It indicates where we are currently located
+ * in the waveform that will be generated.
+ *
+ * @param milliSeconds
+ *   Current system time in milliseconds which is taken as basis for calculating the baseTime.
+ *
+ */
+uint32_t Pulse::calculateBaseTime(unsigned long milliSeconds) {
 	if (millisOffset == 0l) {
 		millisOffset = milliSeconds;
 	}
-
-	uint32_t timebase = milliSeconds - millisOffset;
-	if (timebase > pulseWidth) {
+	uint32_t baseTime = milliSeconds - millisOffset;
+	if (baseTime > pulseWidth) {
 		millisOffset += pulseWidth;
-		timebase -= pulseWidth;
+		baseTime -= pulseWidth;
 	}
+	return baseTime;
+}
+
+/**
+ * Calculates the factor for the duty value at the given baseTime. The factor depends on the
+ * baseTime and the selected waveform.
+ */
+float Pulse::dutyFactorAtBaseTime(uint32_t baseTime) {
 	if (waveform == TRIANGLE) {
-		if (timebase >= (pulseWidth >> 1)) {
-			timebase = pulseWidth - timebase;
+		if (baseTime >= (pulseWidth >> 1)) {
+			baseTime = pulseWidth - baseTime;
 		}
-		timebase <<= 1;
+		baseTime <<= 1;
 	} else if (waveform == SAW_TOOTH_RISE) {
 		// nothing to do
 	} else if (waveform == SAW_TOOTH_FALL) {
-		timebase = pulseWidth - timebase;
+		baseTime = pulseWidth - baseTime;
 	} else if (waveform == BLINK) {
-		timebase = timebase >= (pulseWidth >> 1)
-				? pulseWidth
-				: 0;
+		baseTime = baseTime >= (pulseWidth >> 1) ? pulseWidth : 0;
 	}
 
-	float factor = float(timebase) * frequencyKHz;
+	return float(baseTime) * frequencyKHz;
+}
+
+void Pulse::tick(unsigned long milliSeconds) {
+
+	uint32_t baseTime = calculateBaseTime(milliSeconds);
+
+	float factor = dutyFactorAtBaseTime(baseTime);
+
 	float duty;
 	for (uint8_t i = 0; i < numChannels; ++i) {
 		if (channelDuties[i].getChannel() != 255) {

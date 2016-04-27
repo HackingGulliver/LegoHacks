@@ -96,9 +96,7 @@ uint32_t benchmark() {
 	return counter;
 }
 
-
 void emptyFunction() {
-
 }
 
 /*
@@ -233,7 +231,7 @@ void loop()
 	rgbLed.chain(&pulse);
 	rgbLed.setColor(255, 128, 128);
 
-	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-5, NUM_PINS-6);
+	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-6, NUM_PINS-8);
 	rgbLed2.chain(&pulse);
 	rgbLed2.setColor(64, 128, 255);
 
@@ -257,28 +255,9 @@ void loop()
 	Serial.println((float) samePWM / (3 * noTimer));
 	Serial.println();
 
-	uint8_t duty = 255;
 	while (1) {
-		rgbLed.setColor(duty, duty, 0);
-		rgbLed2.setColor(duty>>2, duty>>1, duty);
+		rgbLed.setColor(rand(), rand(), rand());
 		delay(1000);
-		duty -= 5;
 	}
 
-
-
-/*
-	for (int pin = 0; pin < NUM_PINS; ++pin) {
-		for (uint8_t i = 0; i < 255; ++i) {
-			pwmStateCalculator.setDuty(pin, i);
-			pwmStateCalculator.setupFinished();
-			delay(1);
-		}
-	}
-
-	showBrightness(0, NUM_PINS, pwmStateCalculator);
-
-
-	showChaserLight();
-*/
 }

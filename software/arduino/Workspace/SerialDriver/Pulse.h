@@ -37,6 +37,9 @@ private:
 	uint32_t pulseWidth;  // Pulse width in milliseconds
 	float frequencyKHz;   // Frequency in kHz (derived from pulseWidth
 	Waveform waveform;
+
+	uint32_t calculateBaseTime(unsigned long milliSeconds);
+	float dutyFactorAtBaseTime(uint32_t baseTime);
 };
 
 #endif /* PULSE_H_ */
