@@ -257,6 +257,7 @@ void loop()
 
 	while (1) {
 		rgbLed.setColor(rand(), rand(), rand());
+		pulse.changePulseWidth(1000);
 		delay(1000);
 	}
 
