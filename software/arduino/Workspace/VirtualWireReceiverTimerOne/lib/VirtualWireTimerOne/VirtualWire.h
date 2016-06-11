@@ -372,7 +372,7 @@ extern "C"
     /// Must call vw_rx_start() before you will get any messages
     /// \param[in] speed Desired speed in bits per second
     extern void vw_setup(uint16_t speed);
-    extern void vw_setupTO(uint16_t speed);
+    extern uint32_t vw_setupTO(uint16_t speed);
 
     /// Start the Phase Locked Loop listening to the receiver
     /// Must do this before you can receive any messages
@@ -432,6 +432,8 @@ extern "C"
     /// Caution,: this is an 8 bit count and can easily overflow
     /// \return Count of bad messages received
     extern uint8_t vw_get_rx_bad();
+
+    extern void vwTimerCallback();
 
 #ifdef __cplusplus
 } //	extern "C"

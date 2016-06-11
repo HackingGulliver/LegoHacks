@@ -9,7 +9,6 @@
 #include "VirtualWire.h"
 #include "TimerOne.h"
 
-extern "C" void timerCallback();
 
 // Arduino 1.0 includes crc16.h, so use it else can get clashes with other libraries
 #if defined(ARDUINO) && (ARDUINO >= 100)
@@ -548,79 +547,16 @@ void vw_setup(uint16_t speed)
     pinMode(vw_ptt_pin, OUTPUT);
     vw_digitalWrite_ptt(vw_ptt_inverted);
 }
-void vw_setupTO(uint16_t speed)
+
+uint32_t vw_setupTO(uint16_t speed)
 {
-    uint16_t nticks; // number of prescaled ticks needed
-    uint8_t prescaler; // Bit values for CS0[2:0]
-
-#ifdef __AVR_ATtiny85__
-    // figure out prescaler value and counter match value
-    prescaler = vw_timer_calc(speed, (uint8_t)-1, &nticks);
-    if (!prescaler)
-    {
-        return; // fault
-    }
-
-    TCCR0A = 0;
-    TCCR0A = _BV(WGM01); // Turn on CTC mode / Output Compare pins disconnected
-
-    // convert prescaler index to TCCRnB prescaler bits CS00, CS01, CS02
-    TCCR0B = 0;
-    TCCR0B = prescaler; // set CS00, CS01, CS02 (other bits not needed)
-
-    // Number of ticks to count before firing interrupt
-    OCR0A = uint8_t(nticks);
-
-    // Set mask to fire interrupt when OCF0A bit is set in TIFR0
-    TIMSK |= _BV(OCIE0A);
-
-#elif defined(__arm__) && defined(CORE_TEENSY)
-    // on Teensy 3.0 (32 bit ARM), use an interval timer
-    IntervalTimer *t = new IntervalTimer();
-    void TIMER1_COMPA_vect(void);
-    t->begin(TIMER1_COMPA_vect, 125000 / speed);
-
-#else // ARDUINO
-/* TimerOne
-    // This is the path for most Arduinos
-    // figure out prescaler value and counter match value
-    prescaler = vw_timer_calc(speed, (uint16_t)-1, &nticks);
-    if (!prescaler)
-    {
-        return; // fault
-    }
-
-    TCCR1A = 0; // Output Compare pins disconnected
-    TCCR1B = _BV(WGM12); // Turn on CTC mode
-
-    // convert prescaler index to TCCRnB prescaler bits CS10, CS11, CS12
-    TCCR1B |= prescaler;
-
-    // Caution: special procedures for setting 16 bit regs
-    // is handled by the compiler
-    OCR1A = nticks;
-    // Enable interrupt
-#ifdef TIMSK1
-    // atmega168
-    TIMSK1 |= _BV(OCIE1A);
-#else
-    // others
-    TIMSK |= _BV(OCIE1A);
-#endif // TIMSK1
-*/
-#endif // __AVR_ATtiny85__
-
-	Timer1.initialize();
-	uint32_t timerPeriod = 1000000 / (speed*8);
-	Timer1.setPeriod(timerPeriod);
-	Timer1.attachInterrupt(timerCallback);
-//	Timer1.start();
-
     // Set up digital IO pins
     pinMode(vw_tx_pin, OUTPUT);
     pinMode(vw_rx_pin, INPUT);
     pinMode(vw_ptt_pin, OUTPUT);
     vw_digitalWrite_ptt(vw_ptt_inverted);
+
+    return 1000000 / (speed*8); // Return the requested timer period
 }
 
 #elif (VW_PLATFORM == VW_PLATFORM_STM32) // Maple etc
@@ -867,7 +803,7 @@ void TIMER1_COMPA_vect(void)
 #else
 //ISR(VW_TIMER_VECTOR)
 #endif
-void timerCallback()
+void vwTimerCallback()
 {
 
     if (vw_rx_enabled && !vw_tx_enabled)
