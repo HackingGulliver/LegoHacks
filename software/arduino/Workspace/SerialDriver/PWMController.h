@@ -12,6 +12,7 @@
 #include "PowerController.h"
 #include "PWMStateCalculator.h"
 #include "TimedPowerController.h"
+#include "TimerShare.h"
 
 /**
  * This class is the main controller for all PWM outputs. It controls the timer that calls the controller in regular intervals
@@ -33,6 +34,8 @@ public:
 
 	void addTimedPowerController(TimedPowerController *tpc);
 
+	void shareTimerOne(TimerShare* timerShare, uint32_t timerPeriod);
+
 private:
 	void tick();
 	void timedPowerControllerTick();
@@ -51,6 +54,8 @@ private:
 
 	PWMStateCalculator *pwmStateCalculator;
 	TimedPowerController **timedPowerControllers;
+
+	TimerShare *timerShare;
 };
 
 #endif /* PWMCONTROLLER_H_ */
