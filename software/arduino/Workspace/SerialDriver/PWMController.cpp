@@ -6,6 +6,7 @@
  */
 
 #include "PWMController.h"
+#include <stdlib.h>
 #ifndef DEBUG
 #include <TimerOne.h>
 #include <MsTimer2.h>
@@ -17,6 +18,7 @@ PWMController *PWMController::instance = NULL;
 PWMController::PWMController(uint8_t channels, uint8_t frequency, uint8_t maxNumTimedPowerControllers) {
 
 	instance = this;
+	timerShare = NULL;
 
 	initStateCalculator(channels);
 	initTimedPowerControllers(maxNumTimedPowerControllers);
@@ -55,6 +57,9 @@ void PWMController::addTimedPowerController(TimedPowerController* tpc) {
 }
 
 void PWMController::tick() {
+	if (timerShare != NULL) {
+		timerShare->callback();
+	}
 	pwmStateCalculator->tick();
 }
 
@@ -74,3 +79,8 @@ void PWMController::timedPowerControllerCallback() {
 	instance->timedPowerControllerTick();
 }
 
+void PWMController::shareTimerOne(TimerShare* timerShare, uint32_t timerPeriod) {
+	this->timerShare = timerShare;
+	Timer1.setPeriod(timerPeriod);
+
+}
