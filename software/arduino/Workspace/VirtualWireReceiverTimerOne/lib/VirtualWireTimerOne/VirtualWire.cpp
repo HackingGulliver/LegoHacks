@@ -43,7 +43,8 @@
 
 //	Define digitalRead, digitalWrite and digital pins for Arduino like platforms
 #if (VW_PLATFORM != VW_PLATFORM_GENERIC_AVR8 )
-	#define vw_digitalRead_rx() digitalRead(vw_rx_pin)
+//	#define vw_digitalRead_rx() digitalRead(vw_rx_pin)
+	#define vw_digitalRead_rx() ((PINB & 0x02) ? 1 : 0) // Digital Pin 9 is Bit 1 of PORTB
 	#define vw_digitalWrite_tx(value) digitalWrite(vw_tx_pin,(value))
 	#define vw_digitalWrite_ptt(value) digitalWrite(vw_ptt_pin,(value))
 	
@@ -299,92 +300,80 @@ void vw_set_ptt_pin(uint8_t pin)
 // Phase locked loop tries to synchronise with the transmitter so that bit 
 // transitions occur at about the time vw_rx_pll_ramp is 0;
 // Then the average is computed over each bit period to deduce the bit value
-void vw_pll()
-{
-    // Integrate each sample
-    if (vw_rx_sample)
-	vw_rx_integrator++;
+void vw_pll() {
+	// Integrate each sample
+	if (vw_rx_sample)
+		vw_rx_integrator++;
 
-    if (vw_rx_sample != vw_rx_last_sample)
-    {
-	// Transition, advance if ramp > 80, retard if < 80
-	vw_rx_pll_ramp += ((vw_rx_pll_ramp < VW_RAMP_TRANSITION) 
-			   ? VW_RAMP_INC_RETARD 
-			   : VW_RAMP_INC_ADVANCE);
-	vw_rx_last_sample = vw_rx_sample;
-    }
-    else
-    {
-	// No transition
-	// Advance ramp by standard 20 (== 160/8 samples)
-	vw_rx_pll_ramp += VW_RAMP_INC;
-    }
-    if (vw_rx_pll_ramp >= VW_RX_RAMP_LEN)
-    {
-	// Add this to the 12th bit of vw_rx_bits, LSB first
-	// The last 12 bits are kept
-	vw_rx_bits >>= 1;
-
-	// Check the integrator to see how many samples in this cycle were high.
-	// If < 5 out of 8, then its declared a 0 bit, else a 1;
-	if (vw_rx_integrator >= 5)
-	    vw_rx_bits |= 0x800;
-
-	vw_rx_pll_ramp -= VW_RX_RAMP_LEN;
-	vw_rx_integrator = 0; // Clear the integral for the next cycle
-
-	if (vw_rx_active)
-	{
-	    // We have the start symbol and now we are collecting message bits,
-	    // 6 per symbol, each which has to be decoded to 4 bits
-	    if (++vw_rx_bit_count >= 12)
-	    {
-		// Have 12 bits of encoded message == 1 byte encoded
-		// Decode as 2 lots of 6 bits into 2 lots of 4 bits
-		// The 6 lsbits are the high nybble
-		uint8_t this_byte = 
-		    (vw_symbol_6to4(vw_rx_bits & 0x3f)) << 4 
-		    | vw_symbol_6to4(vw_rx_bits >> 6);
-
-		// The first decoded byte is the byte count of the following message
-		// the count includes the byte count and the 2 trailing FCS bytes
-		// REVISIT: may also include the ACK flag at 0x40
-		if (vw_rx_len == 0)
-		{
-		    // The first byte is the byte count
-		    // Check it for sensibility. It cant be less than 4, since it
-		    // includes the bytes count itself and the 2 byte FCS
-		    vw_rx_count = this_byte;
-		    if (vw_rx_count < 4 || vw_rx_count > VW_MAX_MESSAGE_LEN)
-		    {
-			// Stupid message length, drop the whole thing
-			vw_rx_active = false;
-			vw_rx_bad++;
-                        return;
-		    }
-		}
-		vw_rx_buf[vw_rx_len++] = this_byte;
-
-		if (vw_rx_len >= vw_rx_count)
-		{
-		    // Got all the bytes now
-		    vw_rx_active = false;
-		    vw_rx_good++;
-		    vw_rx_done = true; // Better come get it before the next one starts
-		}
-		vw_rx_bit_count = 0;
-	    }
+	if (vw_rx_sample != vw_rx_last_sample) {
+		// Transition, advance if ramp > 80, retard if < 80
+		vw_rx_pll_ramp += (
+				(vw_rx_pll_ramp < VW_RAMP_TRANSITION) ?
+						VW_RAMP_INC_RETARD : VW_RAMP_INC_ADVANCE);
+		vw_rx_last_sample = vw_rx_sample;
+	} else {
+		// No transition
+		// Advance ramp by standard 20 (== 160/8 samples)
+		vw_rx_pll_ramp += VW_RAMP_INC;
 	}
-	// Not in a message, see if we have a start symbol
-	else if (vw_rx_bits == 0xb38)
-	{
-	    // Have start symbol, start collecting message
-	    vw_rx_active = true;
-	    vw_rx_bit_count = 0;
-	    vw_rx_len = 0;
-	    vw_rx_done = false; // Too bad if you missed the last message
+	if (vw_rx_pll_ramp >= VW_RX_RAMP_LEN) {
+		// Add this to the 12th bit of vw_rx_bits, LSB first
+		// The last 12 bits are kept
+		vw_rx_bits >>= 1;
+
+		// Check the integrator to see how many samples in this cycle were high.
+		// If < 5 out of 8, then its declared a 0 bit, else a 1;
+		if (vw_rx_integrator >= 5)
+			vw_rx_bits |= 0x800;
+
+		vw_rx_pll_ramp -= VW_RX_RAMP_LEN;
+		vw_rx_integrator = 0; // Clear the integral for the next cycle
+
+		if (vw_rx_active) {
+			// We have the start symbol and now we are collecting message bits,
+			// 6 per symbol, each which has to be decoded to 4 bits
+			if (++vw_rx_bit_count >= 12) {
+				// Have 12 bits of encoded message == 1 byte encoded
+				// Decode as 2 lots of 6 bits into 2 lots of 4 bits
+				// The 6 lsbits are the high nybble
+				uint8_t this_byte = (vw_symbol_6to4(vw_rx_bits & 0x3f)) << 4
+						| vw_symbol_6to4(vw_rx_bits >> 6);
+
+				// The first decoded byte is the byte count of the following message
+				// the count includes the byte count and the 2 trailing FCS bytes
+				// REVISIT: may also include the ACK flag at 0x40
+				if (vw_rx_len == 0) {
+					// The first byte is the byte count
+					// Check it for sensibility. It cant be less than 4, since it
+					// includes the bytes count itself and the 2 byte FCS
+					vw_rx_count = this_byte;
+					if (vw_rx_count < 4 || vw_rx_count > VW_MAX_MESSAGE_LEN) {
+						// Stupid message length, drop the whole thing
+						vw_rx_active = false;
+						vw_rx_bad++;
+						return;
+					}
+				}
+				vw_rx_buf[vw_rx_len++] = this_byte;
+
+				if (vw_rx_len >= vw_rx_count) {
+					// Got all the bytes now
+					vw_rx_active = false;
+					vw_rx_good++;
+					vw_rx_done = true; // Better come get it before the next one starts
+				}
+				vw_rx_bit_count = 0;
+			}
+		}
+		// Not in a message, see if we have a start symbol
+		else if (vw_rx_bits == 0xb38) {
+			// Have start symbol, start collecting message
+			vw_rx_active = true;
+			vw_rx_bit_count = 0;
+			vw_rx_len = 0;
+			vw_rx_done = false; // Too bad if you missed the last message
+		}
 	}
-    }
 }
 
 #if defined(__arm__) && defined(CORE_TEENSY)
@@ -803,40 +792,34 @@ void TIMER1_COMPA_vect(void)
 #else
 //ISR(VW_TIMER_VECTOR)
 #endif
-void vwTimerCallback()
-{
+void vwTimerCallback() {
 
-    if (vw_rx_enabled && !vw_tx_enabled)
-	vw_rx_sample = vw_digitalRead_rx() ^ vw_rx_inverted;
-    
-    // Do transmitter stuff first to reduce transmitter bit jitter due 
-    // to variable receiver processing
-    if (vw_tx_enabled && vw_tx_sample++ == 0)
-    {
-	// Send next bit
-	// Symbols are sent LSB first
-	// Finished sending the whole message? (after waiting one bit period 
-	// since the last bit)
-	if (vw_tx_index >= vw_tx_len)
-	{
-	    vw_tx_stop();
-	    vw_tx_msg_count++;
+	if (vw_rx_enabled && !vw_tx_enabled)
+		vw_rx_sample = vw_digitalRead_rx() ^ vw_rx_inverted;
+
+	// Do transmitter stuff first to reduce transmitter bit jitter due
+	// to variable receiver processing
+	if (vw_tx_enabled && vw_tx_sample++ == 0) {
+		// Send next bit
+		// Symbols are sent LSB first
+		// Finished sending the whole message? (after waiting one bit period
+		// since the last bit)
+		if (vw_tx_index >= vw_tx_len) {
+			vw_tx_stop();
+			vw_tx_msg_count++;
+		} else {
+			vw_digitalWrite_tx(vw_tx_buf[vw_tx_index] & (1 << vw_tx_bit++));
+			if (vw_tx_bit >= 6) {
+				vw_tx_bit = 0;
+				vw_tx_index++;
+			}
+		}
 	}
-	else
-	{
-	    vw_digitalWrite_tx(vw_tx_buf[vw_tx_index] & (1 << vw_tx_bit++));
-	    if (vw_tx_bit >= 6)
-	    {
-		vw_tx_bit = 0;
-		vw_tx_index++;
-	    }
-	}
-    }
-    if (vw_tx_sample > 7)
-	vw_tx_sample = 0;
-    
-    if (vw_rx_enabled && !vw_tx_enabled)
-	vw_pll();
+	if (vw_tx_sample > 7)
+		vw_tx_sample = 0;
+
+	if (vw_rx_enabled && !vw_tx_enabled)
+		vw_pll();
 }
 
 
