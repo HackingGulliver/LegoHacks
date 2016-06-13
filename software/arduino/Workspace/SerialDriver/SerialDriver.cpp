@@ -3,6 +3,8 @@
 #include <PWMController.h>
 #include <Pulse.h>
 #include <RGBLed.h>
+#include <PWMStateCalculator.h>
+#include <MovingStartPWMStateCalculator.h>
 
 #ifndef DEBUG
 #include <TimerOne.h>
@@ -10,7 +12,7 @@
 
 const uint8_t NUM_PINS = 8;
 
-void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc);
+void showRisingBrightness(uint8_t startValue, uint8_t numPins, MovingStartPWMStateCalculator &calc);
 
 #ifndef DEBUG
 void setup() {
@@ -19,15 +21,17 @@ void setup() {
 }
 #else
 void setup() {
-//	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
-//	while (1) {
-//		performPWMCycle();
-//	}
+	MovingStartPWMStateCalculator pwmStateCalculator(NUM_PINS);
+
+	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
+	while (1) {
+		pwmStateCalculator.tick();
+	}
 }
 #endif
 
 
-void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalculator &calc) {
+void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, MovingStartPWMStateCalculator &calc) {
 	float stepWith = float(end - start) / numPins;
 	float duty = start;
 
@@ -37,7 +41,7 @@ void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalcul
 	}
 }
 
-void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc) {
+void showRisingBrightness(uint8_t startValue, uint8_t numPins, MovingStartPWMStateCalculator &calc) {
 	createDutyRange(0, 255, numPins, calc);
 	calc.allDutiesSet();
 	delay(1000);
