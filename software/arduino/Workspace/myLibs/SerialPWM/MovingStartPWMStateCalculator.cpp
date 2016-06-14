@@ -136,7 +136,7 @@ void MovingStartPWMStateCalculator::createDataForStep(uint8_t duty) {
 			} else { // Overflow
 				on = (duty >= channelStart) || (duty < chStartWithDuty);
 			}
-			if (on) {
+			if (on || chDuty == 255) {
 				bits |= 128;
 			}
 			if (chStartWithDuty > duty && chStartWithDuty < nextDutyCalc) {
