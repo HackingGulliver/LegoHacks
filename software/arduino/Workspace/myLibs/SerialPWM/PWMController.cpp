@@ -30,10 +30,11 @@ PWMController::~PWMController() {
 }
 
 void PWMController::initStateCalculator(uint8_t channels) {
-	pwmStateCalculator = new PWMStateCalculator(channels);
+	pwmStateCalculator = new MovingStartPWMStateCalculator(channels);
 }
 
 void PWMController::initTimer(uint8_t frequency) {
+#ifndef DEBUG
 	Timer1.initialize();
 	uint32_t timerPeriod = (1000000 / frequency) >> 8;
 	Timer1.setPeriod(timerPeriod);
@@ -41,6 +42,7 @@ void PWMController::initTimer(uint8_t frequency) {
 
 	MsTimer2::set(TimedPowerControllerConstants::UPDATE_INTERVAL, timedPowerControllerCallback);
 	MsTimer2::start();
+#endif
 }
 
 void PWMController::initTimedPowerControllers(uint8_t maxNumTimedPowerControllers) {
@@ -81,6 +83,7 @@ void PWMController::timedPowerControllerCallback() {
 
 void PWMController::shareTimerOne(TimerShare* timerShare, uint32_t timerPeriod) {
 	this->timerShare = timerShare;
+#ifndef DEBUG
 	Timer1.setPeriod(timerPeriod);
-
+#endif
 }

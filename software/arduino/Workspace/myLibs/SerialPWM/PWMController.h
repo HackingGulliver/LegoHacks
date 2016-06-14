@@ -10,7 +10,7 @@
 
 #include "Arduino.h"
 #include "PowerController.h"
-#include "PWMStateCalculator.h"
+#include "MovingStartPWMStateCalculator.h"
 #include "TimedPowerController.h"
 #include "TimerShare.h"
 
@@ -52,7 +52,7 @@ private:
 	uint8_t numTimedPowerControllers;
 	uint8_t maxNumTimedPowerControllers;
 
-	PWMStateCalculator *pwmStateCalculator;
+	MovingStartPWMStateCalculator *pwmStateCalculator;
 	TimedPowerController **timedPowerControllers;
 
 	TimerShare *timerShare;

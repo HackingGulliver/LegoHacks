@@ -3,6 +3,8 @@
 #include <PWMController.h>
 #include <Pulse.h>
 #include <RGBLed.h>
+#include <PWMStateCalculator.h>
+#include <MovingStartPWMStateCalculator.h>
 
 #ifndef DEBUG
 #include <TimerOne.h>
@@ -10,7 +12,7 @@
 
 const uint8_t NUM_PINS = 8;
 
-void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc);
+void showRisingBrightness(uint8_t startValue, uint8_t numPins, MovingStartPWMStateCalculator &calc);
 
 #ifndef DEBUG
 void setup() {
@@ -19,15 +21,20 @@ void setup() {
 }
 #else
 void setup() {
-//	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
-//	while (1) {
-//		performPWMCycle();
-//	}
+	MovingStartPWMStateCalculator pwmStateCalculator(NUM_PINS);
+
+	showRisingBrightness(3, NUM_PINS, pwmStateCalculator);
+	for (int i = 0; i<256; ++i) {
+		pwmStateCalculator.tick();
+	}
+	while (1) {
+		pwmStateCalculator.tick();
+	}
 }
 #endif
 
 
-void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalculator &calc) {
+void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, MovingStartPWMStateCalculator &calc) {
 	float stepWith = float(end - start) / numPins;
 	float duty = start;
 
@@ -37,7 +44,7 @@ void createDutyRange(uint8_t start, uint8_t end, uint8_t numPins, PWMStateCalcul
 	}
 }
 
-void showRisingBrightness(uint8_t startValue, uint8_t numPins, PWMStateCalculator &calc) {
+void showRisingBrightness(uint8_t startValue, uint8_t numPins, MovingStartPWMStateCalculator &calc) {
 	createDutyRange(0, 255, numPins, calc);
 	calc.allDutiesSet();
 	delay(1000);
@@ -223,7 +230,7 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
-	Pulse pulse(6, 1000, Pulse::TRIANGLE);
+	Pulse pulse(8, 1000, Pulse::SAW_TOOTH_RISE);
 	pulse.chain(&pwmController);
 	pwmController.addTimedPowerController(&pulse);
 
@@ -234,6 +241,10 @@ void loop()
 	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-6, NUM_PINS-8);
 	rgbLed2.chain(&pulse);
 	rgbLed2.setColor(64, 128, 255);
+
+	RGBLed rgbLed3(NUM_PINS-5, NUM_PINS-7, NUM_PINS-8);
+	rgbLed3.chain(&pwmController);
+	rgbLed3.setColor(255, 0, 255);
 
 	uint32_t differentPWM = benchmark();
 
@@ -257,8 +268,8 @@ void loop()
 
 	while (1) {
 		rgbLed.setColor(rand(), rand(), rand());
-		pulse.changePulseWidth(1000);
-		delay(1000);
+		pulse.changePulseWidth(2000);
+		delay(2000);
 	}
 
 }
