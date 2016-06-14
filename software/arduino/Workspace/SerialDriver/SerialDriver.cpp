@@ -23,7 +23,10 @@ void setup() {
 void setup() {
 	MovingStartPWMStateCalculator pwmStateCalculator(NUM_PINS);
 
-	showRisingBrightness(0, NUM_PINS, pwmStateCalculator);
+	showRisingBrightness(3, NUM_PINS, pwmStateCalculator);
+	for (int i = 0; i<256; ++i) {
+		pwmStateCalculator.tick();
+	}
 	while (1) {
 		pwmStateCalculator.tick();
 	}
@@ -227,7 +230,7 @@ void loop()
 
 	PWMController pwmController(NUM_PINS, 100);
 
-	Pulse pulse(6, 1000, Pulse::TRIANGLE);
+	Pulse pulse(8, 1000, Pulse::SAW_TOOTH_RISE);
 	pulse.chain(&pwmController);
 	pwmController.addTimedPowerController(&pulse);
 
@@ -238,6 +241,10 @@ void loop()
 	RGBLed rgbLed2(NUM_PINS-4, NUM_PINS-6, NUM_PINS-8);
 	rgbLed2.chain(&pulse);
 	rgbLed2.setColor(64, 128, 255);
+
+	RGBLed rgbLed3(NUM_PINS-5, NUM_PINS-7, NUM_PINS-8);
+	rgbLed3.chain(&pwmController);
+	rgbLed3.setColor(255, 0, 255);
 
 	uint32_t differentPWM = benchmark();
 
@@ -261,8 +268,8 @@ void loop()
 
 	while (1) {
 		rgbLed.setColor(rand(), rand(), rand());
-		pulse.changePulseWidth(1000);
-		delay(1000);
+		pulse.changePulseWidth(2000);
+		delay(2000);
 	}
 
 }
