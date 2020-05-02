@@ -1,2 +1,2 @@
 # LegoHacks
-Alles rund um Lego und Elektronik
+Alles rund um Lego und Elektronik.
